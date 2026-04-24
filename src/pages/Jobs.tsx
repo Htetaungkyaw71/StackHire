@@ -135,6 +135,7 @@ const Jobs = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [totalJobs, setTotalJobs] = useState(0);
   const [selectedTechs, setSelectedTechs] = useState<string[]>(initialTech);
   const [sortBy, setSortBy] = useState<"newest" | "salary">(initialSort);
   const [filters, setFilters] = useState({
@@ -198,6 +199,7 @@ const Jobs = () => {
 
         setJobs(response.data);
         setPage(1);
+        setTotalJobs(response.pagination.total);
         setHasNextPage(response.pagination.hasNextPage);
       } catch {
         if (requestKeyRef.current !== requestKey) return;
@@ -221,6 +223,7 @@ const Jobs = () => {
       try {
         const response = await api.jobs.listPaginated(getRequestParams(page));
         setJobs((prev) => [...prev, ...response.data]);
+        setTotalJobs(response.pagination.total);
         setHasNextPage(response.pagination.hasNextPage);
       } catch {
         setHasNextPage(false);
@@ -326,7 +329,7 @@ const Jobs = () => {
                 {loading ? (
                   <div className="h-5 w-20 rounded bg-muted" />
                 ) : (
-                  `${jobs.length} offers found`
+                  `${totalJobs} offers found`
                 )}
               </p>
               <div className="flex items-center  justify-end gap-3 rounded-md border-transparent bg-transparent">
