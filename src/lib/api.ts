@@ -3,6 +3,18 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const responseCache = new Map<string, unknown>();
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
+const readErrorMessage = async (res: Response) => {
+  const contentType = res.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json")) {
+    const body = await res.json().catch(() => ({}));
+    return body.message || `Request failed: ${res.status}`;
+  }
+
+  const text = await res.text().catch(() => "");
+  return text.trim() || `Request failed: ${res.status}`;
+};
+
 export const clearApiCache = () => {
   responseCache.clear();
   inFlightRequests.clear();
@@ -42,8 +54,7 @@ async function request<T>(
     });
 
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.message || `Request failed: ${res.status}`);
+      throw new Error(await readErrorMessage(res));
     }
 
     if (res.status === 204) return {} as T;
