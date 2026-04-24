@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { MapPin, Bookmark, Globe } from "lucide-react";
+import { MapPin, Bookmark, Globe, Building2 } from "lucide-react";
 import { Job } from "@/lib/api";
 import { getTechColor } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +34,10 @@ const JobCard = ({ job }: { job: Job }) => {
           </div>
         ) : (
           <div className="w-14 h-14 rounded-lg bg-muted max-md:hidden flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-            {job.company_name?.charAt(0)?.toUpperCase() ||
+            <Building2 className="inline h-4 w-4  text-muted-foreground" />
+            {/* {job.company_name?.charAt(0)?.toUpperCase() ||
               job.company?.name?.charAt(0)?.toUpperCase() ||
-              "C"}
+              "C"} */}
           </div>
         )}
 
@@ -58,9 +59,11 @@ const JobCard = ({ job }: { job: Job }) => {
                 </div>
               ) : (
                 <div className="w-12 h-12 rounded-lg md:hidden bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-                  {job.company_name?.charAt(0)?.toUpperCase() ||
+                  <Building2 className="inline h-4 w-4  text-muted-foreground" />
+
+                  {/* {job.company_name?.charAt(0)?.toUpperCase() ||
                     job.company?.name?.charAt(0)?.toUpperCase() ||
-                    "C"}
+                    "C"} */}
                 </div>
               )}
               {/* <div> */}

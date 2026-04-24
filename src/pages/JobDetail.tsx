@@ -585,9 +585,11 @@ const JobDetail = () => {
                   </div>
                 ) : (
                   <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-                    {job.company_name?.charAt(0)?.toUpperCase() ||
+                    <Building2 className="inline h-4 w-4  text-muted-foreground" />
+
+                    {/* {job.company_name?.charAt(0)?.toUpperCase() ||
                       job.company?.name?.charAt(0)?.toUpperCase() ||
-                      "C"}
+                      "C"} */}
                   </div>
                 )}
 
@@ -653,21 +655,17 @@ const JobDetail = () => {
                       return (
                         <span
                           key={tech}
-                          className={`flex items-center gap-2 rounded-xl   py-2 text-xs font-medium`}
+                          className={`flex items-center capitalize bg-white border border-slate-100 shadow-lg px-4 gap-2 rounded-xl   py-2 text-md font-medium`}
                         >
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/70">
-                            {matchedTech ? (
+                          {matchedTech && (
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/70">
                               <img
                                 src={matchedTech.image}
                                 alt={matchedTech.name}
                                 className="h-5 w-5 object-contain"
                               />
-                            ) : (
-                              <span className="text-[10px] font-semibold uppercase leading-none">
-                                {tech.slice(0, 2)}
-                              </span>
-                            )}
-                          </span>
+                            </span>
+                          )}
                           <span>{tech}</span>
                         </span>
                       );
@@ -684,7 +682,7 @@ const JobDetail = () => {
                 Job description
               </h2>
               <div
-                className="text-muted-foreground leading-relaxed text-[15px] [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2 [&_strong]:font-semibold"
+                className="text-foreground leading-relaxed text-[15px] [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-2 [&_strong]:font-semibold"
                 dangerouslySetInnerHTML={{ __html: job.description }}
               ></div>
             </div>
