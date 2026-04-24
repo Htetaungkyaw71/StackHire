@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 @layer base {
   :root {
@@ -15,7 +15,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 30% 10%;
 
-    --primary: 221 83% 53%;
+    --primary: 258 90% 66%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -32,22 +32,28 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --ring: 258 90% 66%;
 
     --radius: 0.75rem;
 
-    --hero-gradient: linear-gradient(135deg, hsl(221 83% 53%), hsl(240 60% 45%));
-    --card-shadow: 0 1px 3px hsl(220 30% 10% / 0.06), 0 1px 2px hsl(220 30% 10% / 0.04);
-    --card-shadow-hover: 0 10px 25px hsl(220 30% 10% / 0.08), 0 4px 10px hsl(220 30% 10% / 0.04);
+    --hero-gradient: linear-gradient(
+      to bottom right,
+      rgb(99 102 241),
+      rgb(139 92 246)
+    );
+    --card-shadow:
+      0 1px 3px hsl(220 30% 10% / 0.06), 0 1px 2px hsl(220 30% 10% / 0.04);
+    --card-shadow-hover:
+      0 10px 25px hsl(220 30% 10% / 0.08), 0 4px 10px hsl(220 30% 10% / 0.04);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 258 90% 66%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-ring: 258 90% 66%;
   }
 
   .dark {
@@ -57,7 +63,7 @@
     --card-foreground: 210 20% 95%;
     --popover: 224 25% 12%;
     --popover-foreground: 210 20% 95%;
-    --primary: 221 83% 60%;
+    --primary: 258 90% 70%;
     --primary-foreground: 0 0% 100%;
     --secondary: 224 20% 18%;
     --secondary-foreground: 210 20% 95%;
@@ -69,19 +75,27 @@
     --destructive-foreground: 210 40% 98%;
     --border: 224 20% 20%;
     --input: 224 20% 20%;
-    --ring: 221 83% 60%;
+    --ring: 258 90% 70%;
     --sidebar-background: 224 30% 8%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 221 83% 60%;
+    --sidebar-primary: 258 90% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 20% 15%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 224 20% 20%;
-    --sidebar-ring: 221 83% 60%;
+    --sidebar-ring: 258 90% 70%;
   }
 }
 
 @layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
   * {
     @apply border-border;
   }
@@ -100,5 +114,24 @@
   }
   .card-shadow-hover {
     box-shadow: var(--card-shadow-hover);
+  }
+
+  /* Dark-mode fallback for existing custom Tailwind classes */
+  .dark .bg-white {
+    background-color: hsl(var(--card));
+  }
+
+  .dark .bg-white\/70 {
+    background-color: hsl(var(--card) / 0.7);
+  }
+
+  .dark .border-slate-100,
+  .dark .border-slate-200,
+  .dark .border-gray-100 {
+    border-color: hsl(var(--border));
+  }
+
+  .dark .bg-slate-50 {
+    background-color: hsl(var(--muted));
   }
 }

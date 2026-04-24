@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase } from "lucide-react";
+import { resolveOnboardingPath } from "@/lib/onboarding";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,14 +22,15 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await api.auth.login(email, password);
-      login(res.token, res.user);
-      if (res.user.role === "RECRUITER") {
-        navigate("/recruiter/dashboard");
-      } else {
-        navigate("/jobs");
-      }
+      login(res.user);
+      const nextPath = await resolveOnboardingPath(res.user);
+      navigate(nextPath);
     } catch (err: any) {
-      toast({ title: "Login failed", description: err.message, variant: "destructive" });
+      toast({
+        title: "Login failed",
+        description: err.message,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -38,12 +40,10 @@ const Login = () => {
     <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 bg-background">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold text-foreground mb-6">
-            <Briefcase className="h-6 w-6 text-primary" />
-            JobFlow
-          </Link>
           <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-          <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Sign in to your account
+          </p>
         </div>
 
         <div className="bg-card border rounded-lg p-6">
@@ -78,7 +78,10 @@ const Login = () => {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
+          <Link
+            to="/register"
+            className="text-primary font-medium hover:underline"
+          >
             Create account
           </Link>
         </p>

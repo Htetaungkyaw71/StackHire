@@ -1,10 +1,11 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { WORKING_MODES, JOB_TYPES, JOB_LEVELS } from "@/lib/constants";
+import { Switch } from "@/components/ui/switch";
+import { JOB_TYPES, JOB_LEVELS } from "@/lib/constants";
 
 interface Filters {
-  workingMode: string[];
+  remoteOnly: boolean;
   jobType: string[];
   level: string[];
   salaryMin: string;
@@ -16,79 +17,110 @@ interface FilterSidebarProps {
 }
 
 const FilterSidebar = ({ filters, onChange }: FilterSidebarProps) => {
-  const toggleArrayItem = (key: "workingMode" | "jobType" | "level", value: string) => {
-    const arr = filters[key];
-    const updated = arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
-    onChange({ ...filters, [key]: updated });
+  const setSingleSelect = (key: "jobType" | "level", value: string) => {
+    const current = filters[key][0];
+    onChange({
+      ...filters,
+      [key]: current === value ? [] : [value],
+    });
   };
 
   return (
-    <aside className="space-y-6">
-      <div>
-        <h3 className="text-sm font-semibold text-foreground mb-3">Working mode</h3>
-        <div className="space-y-2">
-          {WORKING_MODES.map((mode) => (
-            <div key={mode} className="flex items-center gap-2">
-              <Checkbox
-                id={`mode-${mode}`}
-                checked={filters.workingMode.includes(mode)}
-                onCheckedChange={() => toggleArrayItem("workingMode", mode)}
-              />
-              <Label htmlFor={`mode-${mode}`} className="text-sm text-muted-foreground cursor-pointer">
-                {mode}
-              </Label>
-            </div>
-          ))}
+    <aside className="space-y-6 rounded-2xl shadow-lg bg-card p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+        <button
+          type="button"
+          className="text-xs text-muted-foreground hover:text-foreground"
+          onClick={() =>
+            onChange({
+              remoteOnly: false,
+              jobType: [],
+              level: [],
+              salaryMin: "",
+            })
+          }
+        >
+          Clear all
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-foreground">Working mode</h3>
+        <div className="flex items-center justify-between rounded-lg border bg-muted/20 px-3 py-2">
+          <Label
+            htmlFor="remote-only"
+            className="text-sm text-muted-foreground cursor-pointer"
+          >
+            Remote only
+          </Label>
+          <Switch
+            id="remote-only"
+            checked={filters.remoteOnly}
+            onCheckedChange={(checked) =>
+              onChange({ ...filters, remoteOnly: checked })
+            }
+          />
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground mb-3">Contract type</h3>
-        <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-foreground mb-3">
+          Contract type
+        </h3>
+        <div className="flex flex-wrap gap-2">
           {JOB_TYPES.map((type) => (
-            <div key={type} className="flex items-center gap-2">
-              <Checkbox
-                id={`type-${type}`}
-                checked={filters.jobType.includes(type)}
-                onCheckedChange={() => toggleArrayItem("jobType", type)}
-              />
-              <Label htmlFor={`type-${type}`} className="text-sm text-muted-foreground cursor-pointer">
-                {type}
-              </Label>
-            </div>
+            <button
+              key={type}
+              type="button"
+              onClick={() => setSingleSelect("jobType", type)}
+              className={`rounded-full border px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+                filters.jobType[0] === type
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {type}
+            </button>
           ))}
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-foreground mb-3">Experience level</h3>
-        <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-foreground mb-3">
+          Experience level
+        </h3>
+        <div className="flex flex-wrap gap-2">
           {JOB_LEVELS.map((level) => (
-            <div key={level} className="flex items-center gap-2">
-              <Checkbox
-                id={`level-${level}`}
-                checked={filters.level.includes(level)}
-                onCheckedChange={() => toggleArrayItem("level", level)}
-              />
-              <Label htmlFor={`level-${level}`} className="text-sm text-muted-foreground cursor-pointer">
-                {level}
-              </Label>
-            </div>
+            <button
+              key={level}
+              type="button"
+              onClick={() => setSingleSelect("level", level)}
+              className={`rounded-full border px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${
+                filters.level[0] === level
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {level}
+            </button>
           ))}
         </div>
       </div>
 
-      <div>
-        <h3 className="text-sm font-semibold text-foreground mb-3">Minimum salary</h3>
+      {/* <div>
+        <h3 className="text-sm font-semibold text-foreground mb-3">
+          Minimum salary
+        </h3>
         <Input
           type="number"
-          placeholder="e.g. 5000"
+          placeholder="e.g. 60000"
           value={filters.salaryMin}
           onChange={(e) => onChange({ ...filters, salaryMin: e.target.value })}
           className="text-sm"
         />
         <p className="text-xs text-muted-foreground mt-1">USD / month</p>
-      </div>
+      </div> */}
     </aside>
   );
 };
