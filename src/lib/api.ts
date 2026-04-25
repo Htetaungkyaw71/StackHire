@@ -89,6 +89,7 @@ export interface User {
 
 export interface CandidateProfile {
   id?: string;
+  fullName: string;
   headline: string;
   description: string;
   location: string;
@@ -247,6 +248,26 @@ export const api = {
       request<AuthResponse>("/auth/register", {
         method: "POST",
         body: JSON.stringify({ email, password, role }),
+      }),
+    verifyOtp: (email: string, code: string, password: string, role: string) =>
+      request<AuthResponse>("/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ email, code, password, role }),
+      }),
+    resendOtp: (email: string) =>
+      request<{ message: string; expiresIn: number }>("/auth/resend-otp", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    forgotPassword: (email: string) =>
+      request<{ message: string; expiresIn: number }>("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (email: string, code: string, newPassword: string) =>
+      request<{ message: string }>("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ email, code, newPassword }),
       }),
   },
   jobs: {

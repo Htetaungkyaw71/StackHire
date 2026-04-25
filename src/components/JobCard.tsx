@@ -22,7 +22,7 @@ const JobCard = ({ job }: { job: Job }) => {
 
   return (
     <Link to={`/jobs/${job.id}`} className="block group">
-      <div className="flex items-center mt-3 rounded-md shadow-md max-md:gap-0 gap-4 px-5 py-5 bg-card border border-border hover:shadow-lg transition-colors">
+      <div className="flex items-center mt-3 rounded-md shadow-md max-md:gap-0 gap-4 max-md:p-4 p-5 bg-card border border-border hover:shadow-lg transition-colors">
         {/* Company logo placeholder */}
         {job?.logo ? (
           <div className="h-26 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
@@ -34,10 +34,10 @@ const JobCard = ({ job }: { job: Job }) => {
           </div>
         ) : (
           <div className="w-14 h-14 rounded-lg bg-muted max-md:hidden flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-            <Building2 className="inline h-4 w-4  text-muted-foreground" />
-            {/* {job.company_name?.charAt(0)?.toUpperCase() ||
+            {/* <Building2 className="inline h-4 w-4  text-muted-foreground" /> */}
+            {job.company_name?.charAt(0)?.toUpperCase() ||
               job.company?.name?.charAt(0)?.toUpperCase() ||
-              "C"} */}
+              "C"}
           </div>
         )}
 
@@ -45,7 +45,7 @@ const JobCard = ({ job }: { job: Job }) => {
 
         <div className="flex-1 min-w-0 space-y-2 max-md:space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-            <h3 className="font-semibold max-md:hidden text-card-foreground truncate text-sm sm:text-[15px] leading-tight flex-1 min-w-0">
+            <h3 className="font-semibold max-md:hidden text-card-foreground truncate text-md leading-tight flex-1 min-w-0">
               {job.title}
             </h3>
             <div className="flex w-full md:hidden gap-2 items-center justify-between">
@@ -59,15 +59,15 @@ const JobCard = ({ job }: { job: Job }) => {
                 </div>
               ) : (
                 <div className="w-12 h-12 rounded-lg md:hidden bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-                  <Building2 className="inline h-4 w-4  text-muted-foreground" />
+                  {/* <Building2 className="inline h-4 w-4  text-muted-foreground" /> */}
 
-                  {/* {job.company_name?.charAt(0)?.toUpperCase() ||
+                  {job.company_name?.charAt(0)?.toUpperCase() ||
                     job.company?.name?.charAt(0)?.toUpperCase() ||
-                    "C"} */}
+                    "C"}
                 </div>
               )}
               {/* <div> */}
-              <h3 className="font-semibold text-card-foreground truncate text-sm sm:text-[15px] leading-tight flex-1 min-w-0">
+              <h3 className="font-semibold text-card-foreground truncate text-md leading-tight flex-1 min-w-0">
                 {job.title}
               </h3>
 
@@ -97,7 +97,7 @@ const JobCard = ({ job }: { job: Job }) => {
                 {job?.salary ? (
                   <>
                     {
-                      <span className="text-xs sm:text-md font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span className="text-md sm:text-md font-semibold text-emerald-600 dark:text-emerald-400">
                         {job.salary}
                       </span>
                     }
@@ -105,14 +105,14 @@ const JobCard = ({ job }: { job: Job }) => {
                 ) : (
                   <>
                     {salary ? (
-                      <span className="text-xs sm:text-md font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span className="text-md sm:text-md font-semibold text-emerald-600 dark:text-emerald-400">
                         {salary}{" "}
-                        <span className="text-muted-foreground text-xs sm:text-md">
+                        <span className="text-md sm:text-md text-emerald-600 dark:text-emerald-400">
                           USD/month
                         </span>
                       </span>
                     ) : (
-                      <span className="text-xs sm:text-md font-semibold text-emerald-600 dark:text-emerald-400">
+                      <span className="text-md sm:text-md font-semibold text-emerald-600 dark:text-emerald-400">
                         Negotiable
                       </span>
                     )}
@@ -134,7 +134,7 @@ const JobCard = ({ job }: { job: Job }) => {
                   className={`transition-colors ${isSaved(job.id) ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
                 >
                   <Bookmark
-                    className={`h-4 w-4 ${isSaved(job.id) ? "fill-current" : ""}`}
+                    className={`h-5 w-5 ${isSaved(job.id) ? "fill-current" : ""}`}
                   />
                 </button>
               </div>
@@ -143,7 +143,9 @@ const JobCard = ({ job }: { job: Job }) => {
 
           <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex items-center  gap-3 text-xs text-muted-foreground flex-wrap">
-              <span className="font-medium text-foreground">
+              <span className="flex items-center gap-0.5">
+                <Building2 className="inline h-3 w-3" />
+
                 {job.company_name || job?.company?.name || "Company"}
               </span>
               <span className="flex items-center gap-0.5">
@@ -168,7 +170,7 @@ const JobCard = ({ job }: { job: Job }) => {
               {job.techStack.slice(0, 3).map((tech) => (
                 <span
                   key={tech}
-                  className="px-1.5 py-0.5 bg-muted text-[9px] sm:text-[11px] font-medium border border-border text-foreground rounded whitespace-nowrap"
+                  className="px-1.5 py-0.5 bg-muted text-[9px] sm:text-[11px] rounded-md capitalize font-medium border border-slate-100 text-foreground  whitespace-nowrap"
                 >
                   {tech}
                 </span>
@@ -184,7 +186,7 @@ const JobCard = ({ job }: { job: Job }) => {
             {job.techStack.slice(0, 3).map((tech) => (
               <span
                 key={tech}
-                className="px-1.5 py-0.5 bg-muted text-[9px] sm:text-[11px] font-medium border border-border text-foreground rounded whitespace-nowrap"
+                className="px-1.5 py-0.5 bg-muted text-[9px] sm:text-[11px] rounded-md capitalize font-medium border border-slate-100 text-foreground  whitespace-nowrap"
               >
                 {tech}
               </span>

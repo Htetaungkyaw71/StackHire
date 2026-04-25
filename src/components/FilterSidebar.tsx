@@ -26,7 +26,7 @@ const FilterSidebar = ({ filters, onChange }: FilterSidebarProps) => {
   };
 
   return (
-    <aside className="space-y-6 rounded-2xl shadow-lg bg-card p-4">
+    <aside className="space-y-6 py-6 rounded-2xl border border-slate-100 bg-white p-4 shadow-lg">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Filters</h2>
         <button

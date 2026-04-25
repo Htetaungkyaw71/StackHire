@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loader2, Search, ChevronDown } from "lucide-react";
+import { Loader2, Search, ChevronDown, Filter } from "lucide-react";
 import JobCard from "@/components/JobCard";
 import TechStackFilter from "@/components/TechStackFilter";
 import FilterSidebar from "@/components/FilterSidebar";
 import { api, Job } from "@/lib/api";
 import type { JobsListParams } from "@/lib/api";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const CustomSelect = ({
   value,
@@ -306,13 +313,13 @@ const Jobs = () => {
         </form>
       </div>
 
-      <div className="sticky top-14 max-md:top-[120px] z-50 max-md:backdrop-blur-none max-md:bg-background/95 backdrop-blur-md">
-        <div className="container py-4 max-md:py-0">
+      <div className="sticky top-14 max-md:hidden z-50 backdrop-blur-md">
+        <div className="container py-4">
           <TechStackFilter selected={selectedTechs} onToggle={toggleTech} />
         </div>
       </div>
 
-      <div className="container max-w-6xl py-6">
+      <div className="container max-w-6xl py-0">
         <div className="flex gap-8">
           {/* Sidebar filters */}
           <div className="hidden md:block w-64 shrink-0 sticky top-52 self-start">
@@ -391,6 +398,51 @@ const Jobs = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-50  bg-transparent px-4 py-3 md:hidden">
+        <div className="mx-auto flex max-w-6xl justify-center">
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex h-12 w-fit items-center justify-center gap-2 rounded-full border border-slate-100 px-5 text-sm font-medium bg-white text-foreground shadow-lg"
+              >
+                <Filter className="h-4 w-4" />
+                Filters
+                {(selectedTechs.length > 0 ||
+                  filters.remoteOnly ||
+                  filters.jobType.length > 0 ||
+                  filters.level.length > 0 ||
+                  filters.salaryMin) && (
+                  <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                    Active
+                  </span>
+                )}
+              </button>
+            </SheetTrigger>
+            <SheetContent
+              side="bottom"
+              className="h-[85vh] rounded-t-3xl px-4 pb-6 pt-4 md:hidden"
+            >
+              <SheetHeader className="px-1 pb-4 text-left">
+                <SheetTitle>Filters</SheetTitle>
+              </SheetHeader>
+              <div className="max-h-[calc(85vh-5rem)] overflow-y-auto pb-8">
+                <div className="mb-6 space-y-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-lg">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Tech stacks
+                  </h3>
+                  <TechStackFilter
+                    selected={selectedTechs}
+                    onToggle={toggleTech}
+                  />
+                </div>
+                <FilterSidebar filters={filters} onChange={setFilters} />
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </div>

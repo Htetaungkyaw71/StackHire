@@ -98,6 +98,19 @@ const toDateInputValue = (value?: string) => {
   return date.toISOString().slice(0, 10);
 };
 
+const isValidExperienceDateRange = (startDate: string, endDate?: string) => {
+  if (!startDate || !endDate) return true;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return false;
+  }
+
+  return start.getTime() <= end.getTime();
+};
+
 const normalizeExperienceRecord = (experience: any) => ({
   title: experience?.title || experience?.role || "",
   company: experience?.company || experience?.companyName || "",
@@ -115,6 +128,7 @@ const normalizeJobStatus = (value: string) => {
 };
 
 const getCandidateDefaults = (): CandidateProfileType => ({
+  fullName: "",
   headline: "",
   description: "",
   location: "",
@@ -213,6 +227,7 @@ const CandidateProfile = () => {
 
     const payload = {
       ...form,
+      fullName: form.fullName?.trim() || undefined,
       headline: form.headline?.trim() || undefined,
       description: description || undefined,
       location: form.location?.trim() || undefined,
@@ -245,6 +260,20 @@ const CandidateProfile = () => {
       toast({
         title: "Missing required fields",
         description: "Please add at least one skill and one language.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const invalidExperience = form.experiences.find(
+      (experience) =>
+        !isValidExperienceDateRange(experience.startDate, experience.endDate),
+    );
+
+    if (invalidExperience) {
+      toast({
+        title: "Invalid date range",
+        description: "Experience start date must be earlier than end date.",
         variant: "destructive",
       });
       return;
@@ -314,12 +343,33 @@ const CandidateProfile = () => {
   };
 
   const addExperience = () => {
-    if (!newExperience.title.trim() || !newExperience.company.trim()) return;
+    if (!newExperience.title.trim() || !newExperience.company.trim()) {
+      toast({
+        title: "Missing required fields",
+        description: "Title and company should not be empty.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (!newExperience.startDate) {
       toast({
         title: "Start date required",
         description: "Please choose when the experience started.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      !isValidExperienceDateRange(
+        newExperience.startDate,
+        newExperience.endDate,
+      )
+    ) {
+      toast({
+        title: "Invalid date range",
+        description: "Start date must be earlier than end date.",
         variant: "destructive",
       });
       return;
@@ -421,6 +471,16 @@ const CandidateProfile = () => {
                     Basic Information
                   </h2>
                   <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label>Fullname</Label>
+                      <Input
+                        value={form.fullName}
+                        onChange={(e) =>
+                          setForm({ ...form, fullName: e.target.value })
+                        }
+                        placeholder="David Scott"
+                      />
+                    </div>
                     <div className="space-y-2 sm:col-span-2">
                       <Label>Headline</Label>
                       <Input
@@ -723,6 +783,7 @@ const CandidateProfile = () => {
                       <Input
                         type="date"
                         value={newExperience.startDate}
+                        max={newExperience.endDate || undefined}
                         onChange={(e) =>
                           setNewExperience({
                             ...newExperience,
@@ -736,6 +797,7 @@ const CandidateProfile = () => {
                       <Input
                         type="date"
                         value={newExperience.endDate}
+                        min={newExperience.startDate || undefined}
                         onChange={(e) =>
                           setNewExperience({
                             ...newExperience,
@@ -796,8 +858,12 @@ const CandidateProfile = () => {
                     </div>
                     <div className="flex-1">
                       <h2 className="text-lg font-semibold text-foreground">
-                        {profile.headline || "No headline"}
+                        {profile.fullName || "No headline"}
                       </h2>
+                      <p className="text-md text-muted-foreground">
+                        {profile.headline || "No headline"}
+                      </p>
+
                       <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-muted-foreground">
                         {profile.location && (
                           <span className="flex items-center gap-1">
@@ -813,7 +879,7 @@ const CandidateProfile = () => {
                         {profile.expectedSalary > 0 && (
                           <span className="flex items-center gap-1">
                             <DollarSign className="h-3.5 w-3.5" />
-                            {(profile.expectedSalary / 1000).toFixed(0)}/month
+                            {profile.expectedSalary.toFixed(0)}/month
                           </span>
                         )}
                       </div>

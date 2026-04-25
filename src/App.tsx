@@ -11,6 +11,7 @@ import Jobs from "./pages/Jobs";
 import JobDetail from "./pages/JobDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 import CandidateProfile from "./pages/CandidateProfile";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import CreateCompany from "./pages/CreateCompany";
@@ -37,6 +38,7 @@ const AppRoutes = () => {
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/candidate/profile"
           element={
