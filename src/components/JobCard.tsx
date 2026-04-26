@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { MapPin, Bookmark, Globe, Building2 } from "lucide-react";
+import { MapPin, Bookmark, Globe, Building2, Briefcase } from "lucide-react";
 import { Job } from "@/lib/api";
 import { getTechColor } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ const JobCard = ({ job }: { job: Job }) => {
       <div className="flex items-center mt-3 rounded-md shadow-md max-md:gap-0 gap-4 max-md:p-4 p-5 bg-card border border-border hover:shadow-lg transition-colors">
         {/* Company logo placeholder */}
         {job?.logo ? (
-          <div className="h-26 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
+          <div className="h-auto rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
             <img
               src={job?.logo}
               alt=""
@@ -33,11 +33,8 @@ const JobCard = ({ job }: { job: Job }) => {
             />
           </div>
         ) : (
-          <div className="w-14 h-14 rounded-lg bg-muted max-md:hidden flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-            {/* <Building2 className="inline h-4 w-4  text-muted-foreground" /> */}
-            {job.company_name?.charAt(0)?.toUpperCase() ||
-              job.company?.name?.charAt(0)?.toUpperCase() ||
-              "C"}
+          <div className="w-[70px] h-[54px]  rounded-xl max-md:hidden bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">
+            <Briefcase className="w-3.5 md:w-4 h-3.5 md:h-4 text-indigo-400 dark:text-indigo-300" />
           </div>
         )}
 
@@ -50,7 +47,7 @@ const JobCard = ({ job }: { job: Job }) => {
             </h3>
             <div className="flex w-full md:hidden gap-2 items-center justify-between">
               {job?.logo ? (
-                <div className="h-26 rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
+                <div className="h-auto rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
                   <img
                     src={job?.logo}
                     alt=""
@@ -58,13 +55,16 @@ const JobCard = ({ job }: { job: Job }) => {
                   />
                 </div>
               ) : (
-                <div className="w-12 h-12 rounded-lg md:hidden bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
-                  {/* <Building2 className="inline h-4 w-4  text-muted-foreground" /> */}
-
-                  {job.company_name?.charAt(0)?.toUpperCase() ||
-                    job.company?.name?.charAt(0)?.toUpperCase() ||
-                    "C"}
+                <div className="w-11 md:w-9 h-10 md:hidden  md:h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">
+                  <Briefcase className="w-3.5 md:w-4 h-3.5 md:h-4 text-indigo-400 dark:text-indigo-300" />
                 </div>
+                // <div className="w-12 h-12 rounded-lg md:hidden bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-lg">
+                //   {/* <Building2 className="inline h-4 w-4  text-muted-foreground" /> */}
+
+                //   {job.company_name?.charAt(0)?.toUpperCase() ||
+                //     job.company?.name?.charAt(0)?.toUpperCase() ||
+                //     "C"}
+                // </div>
               )}
               {/* <div> */}
               <h3 className="font-semibold text-card-foreground truncate text-md leading-tight flex-1 min-w-0">

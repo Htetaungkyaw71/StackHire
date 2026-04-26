@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,6 +131,8 @@ const getCandidateDefaults = (): CandidateProfileType => ({
   fullName: "",
   headline: "",
   description: "",
+  cvUrl: "",
+  cvFilename: "",
   location: "",
   openToRemote: true,
   expectedSalary: 0,
@@ -150,6 +152,8 @@ const normalizeCandidateProfile = (
   return {
     ...defaults,
     ...profile,
+    cvUrl: profile.cvUrl || defaults.cvUrl,
+    cvFilename: profile.cvFilename || defaults.cvFilename,
     availability: normalizeAvailability(
       profile.availability || defaults.availability,
     ),
@@ -162,6 +166,16 @@ const normalizeCandidateProfile = (
   };
 };
 
+const getFileNameFromUrl = (value?: string) => {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.pathname.split("/").pop() || "Uploaded CV";
+  } catch {
+    return value.split("/").pop() || "Uploaded CV";
+  }
+};
+
 const CandidateProfile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -171,6 +185,9 @@ const CandidateProfile = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const [cvFileName, setCvFileName] = useState("");
+  const cvInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState<CandidateProfileType>(
     getCandidateDefaults(),
@@ -207,6 +224,10 @@ const CandidateProfile = () => {
         const normalizedProfile = normalizeCandidateProfile(profiles[0]);
         setProfile(normalizedProfile);
         setForm(normalizedProfile);
+        setCvFileName(
+          normalizedProfile.cvFilename ||
+            getFileNameFromUrl(normalizedProfile.cvUrl),
+        );
       }
 
       setApplications(apps);
@@ -232,6 +253,8 @@ const CandidateProfile = () => {
       description: description || undefined,
       location: form.location?.trim() || undefined,
       expectedSalary: form.expectedSalary > 0 ? form.expectedSalary : undefined,
+      cvUrl: form.cvUrl?.trim() || undefined,
+      cvFilename: form.cvFilename?.trim() || undefined,
       availability: normalizeAvailability(form.availability),
       jobStatus: normalizeJobStatus(form.jobStatus),
       skills: form.skills.map((skill) => ({
@@ -404,6 +427,70 @@ const CandidateProfile = () => {
     });
   };
 
+  const handleCvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY;
+
+    if (!cloudName || !apiKey) {
+      toast({
+        title: "Upload not configured",
+        description:
+          "Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_API_KEY.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingCv(true);
+    setCvFileName(file.name);
+
+    try {
+      const { signature, timestamp, folder } = await api.uploads.getSignature();
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", String(timestamp));
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || "CV upload failed");
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        cvUrl: payload.secure_url || "",
+        cvFilename: file.name,
+      }));
+      setCvFileName(file.name);
+      toast({ title: "CV uploaded", description: "Your CV URL is ready." });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingCv(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container max-w-6xl py-8">
@@ -415,7 +502,6 @@ const CandidateProfile = () => {
       </div>
     );
   }
-  console.log(profile);
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-background">
@@ -480,6 +566,52 @@ const CandidateProfile = () => {
                         }
                         placeholder="David Scott"
                       />
+                    </div>
+                    <div className="space-y-3 sm:col-span-2 rounded-lg border bg-muted/20 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <Label>CV Upload</Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Upload a reusable CV URL for job applications.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => cvInputRef.current?.click()}
+                          disabled={uploadingCv}
+                        >
+                          {uploadingCv ? "Uploading..." : "Upload CV"}
+                        </Button>
+                      </div>
+                      <input
+                        ref={cvInputRef}
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        className="hidden"
+                        onChange={handleCvUpload}
+                      />
+                      {form.cvUrl ? (
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
+                          <span className="font-medium">
+                            {form.cvFilename ||
+                              cvFileName ||
+                              getFileNameFromUrl(form.cvUrl)}
+                          </span>
+                          <a
+                            href={form.cvUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            Preview CV
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No CV uploaded yet.
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                       <Label>Headline</Label>
@@ -887,6 +1019,23 @@ const CandidateProfile = () => {
                         <p className="text-sm text-muted-foreground mt-3">
                           {profile.description}
                         </p>
+                      )}
+
+                      {profile.cvUrl && (
+                        <div className="mt-4 flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-sm">
+                          <span className="font-medium text-foreground">
+                            CV
+                          </span>
+                          <a
+                            href={profile.cvUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary hover:underline break-all"
+                          >
+                            {profile.cvFilename ||
+                              getFileNameFromUrl(profile.cvUrl)}
+                          </a>
+                        </div>
                       )}
                     </div>
                   </div>

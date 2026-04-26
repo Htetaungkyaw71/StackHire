@@ -27,33 +27,40 @@ interface TechStackFilterProps {
 }
 
 const TechStackFilter = ({ selected, onToggle }: TechStackFilterProps) => {
+  const hasSelection = selected.length > 0;
+
   return (
     <div className="flex gap-0 overflow-x-auto pb-2 scrollbar-hide">
       {TECH_STACK_OPTIONS.map((tech) => {
         const isActive = selected.includes(tech.name);
+        const isDimmed = hasSelection && !isActive;
         return (
           <button
             key={tech.name}
             type="button"
             onClick={() => onToggle(tech.name)}
-            className={`flex  flex-col items-center gap-2 rounded-xl  px-3 py-3 text-xs font-medium transition-all shrink-0 
-            
-            `}
+            className="flex shrink-0 flex-col items-center gap-2 rounded-xl px-3 py-3 text-xs font-medium transition-all"
           >
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-full border bg-muted/40 ${
-                isActive
-                  ? "bg-primary/30 text-primary shadow-lg"
-                  : "text-muted-foreground"
+              className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all ${
+                isDimmed
+                  ? "border-muted bg-muted/20 text-muted-foreground grayscale opacity-60"
+                  : "bg-gradient-to-br from-sky-50 via-white to-emerald-50 text-foreground shadow-sm"
               }`}
             >
               <img
                 src={tech.image}
                 alt={tech.name}
-                className="h-8 w-8 object-contain"
+                className={`h-8 w-8 object-contain transition-all ${
+                  isDimmed ? "grayscale" : ""
+                }`}
               />
             </div>
-            <span className="text-center text-[13px] font-semibold leading-tight">
+            <span
+              className={`text-center text-[13px] font-semibold leading-tight transition-all ${
+                isDimmed ? "text-muted-foreground" : "text-foreground"
+              }`}
+            >
               {tech.name}
             </span>
           </button>

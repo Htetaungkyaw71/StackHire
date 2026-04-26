@@ -92,6 +92,8 @@ export interface CandidateProfile {
   fullName: string;
   headline: string;
   description: string;
+  cvUrl?: string;
+  cvFilename?: string;
   location: string;
   openToRemote: boolean;
   expectedSalary: number;
@@ -234,7 +236,7 @@ export interface JobsListParams {
   minSalary?: number;
   search?: string;
   tech?: string[];
-  sort?: "newest" | "salary";
+  sort?: "newest" | "oldest" | "salary-high" | "salary-low";
 }
 
 export const api = {

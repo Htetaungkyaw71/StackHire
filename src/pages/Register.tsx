@@ -6,7 +6,17 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  ArrowLeft,
+  ArrowLeftCircle,
+  ArrowLeftIcon,
+  ArrowLeftFromLine,
+  ArrowLeftCircleIcon,
+  ChevronLeft,
+} from "lucide-react";
 import { resolveOnboardingPath } from "@/lib/onboarding";
 
 const Register = () => {
@@ -276,7 +286,7 @@ const Register = () => {
                   </p>
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="link"
                     size="sm"
                     onClick={handleResendOTP}
                     disabled={loading}
@@ -286,18 +296,18 @@ const Register = () => {
                   </Button>
                 </div>
 
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  className="w-full"
+                  className="w-full flex items-center gap-1"
                   onClick={() => {
                     setStep(1);
                     setOtp("");
                   }}
                   disabled={loading}
                 >
+                  <ChevronLeft className="h-4 w-4" />
                   Back
-                </Button>
+                </button>
               </form>
             </>
           )}

@@ -36,6 +36,7 @@ import {
   ArrowRightFromLine,
   ArrowRightIcon,
   ArrowRightToLine,
+  ChevronLeft,
 } from "lucide-react";
 import { api, Application, Job } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -87,6 +88,16 @@ const formatRelativeDate = (value: string) => {
   return `${Math.floor(diffInHours / 24)}d ago`;
 };
 
+const getFileNameFromUrl = (value?: string) => {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return url.pathname.split("/").pop() || "Uploaded CV";
+  } catch {
+    return value.split("/").pop() || "Uploaded CV";
+  }
+};
+
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, user, login } = useAuth();
@@ -103,15 +114,28 @@ const JobDetail = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [applicationModalOpen, setApplicationModalOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("login");
+  const [registerStep, setRegisterStep] = useState<"details" | "otp">(
+    "details",
+  );
   const [authLoading, setAuthLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
+  const [registerOtp, setRegisterOtp] = useState("");
   const [applicationName, setApplicationName] = useState("");
   const [applicationEmail, setApplicationEmail] = useState("");
   const [cvUrl, setCvUrl] = useState("");
   const [cvFileName, setCvFileName] = useState("");
+  const [uploadedCvUrl, setUploadedCvUrl] = useState("");
+  const [uploadedCvFileName, setUploadedCvFileName] = useState("");
+  const [profileCvUrl, setProfileCvUrl] = useState("");
+  const [profileCvFileName, setProfileCvFileName] = useState("");
+  const [selectedCvSource, setSelectedCvSource] = useState<
+    "profile" | "upload"
+  >("upload");
+  const [loadingProfileCv, setLoadingProfileCv] = useState(false);
   const [uploadingCv, setUploadingCv] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
     string | null
@@ -130,6 +154,23 @@ const JobDetail = () => {
     setApplicationName(getDefaultApplicantName(email));
     setCvUrl("");
     setCvFileName("");
+    setUploadedCvUrl("");
+    setUploadedCvFileName("");
+    setProfileCvUrl("");
+    setProfileCvFileName("");
+    setSelectedCvSource("upload");
+  };
+
+  const resetAuthForm = () => {
+    setAuthTab("login");
+    setRegisterStep("details");
+    setAuthLoading(false);
+    setLoginEmail("");
+    setLoginPassword("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setRegisterConfirmPassword("");
+    setRegisterOtp("");
   };
 
   useEffect(() => {
@@ -182,6 +223,58 @@ const JobDetail = () => {
 
     void checkIfApplied();
   }, [id, isAuthenticated, user]);
+
+  useEffect(() => {
+    const loadCandidateCv = async () => {
+      if (
+        !applicationModalOpen ||
+        !isAuthenticated ||
+        user?.role !== "CANDIDATE"
+      ) {
+        return;
+      }
+
+      setLoadingProfileCv(true);
+      try {
+        const profiles = await api.candidate.get().catch(() => []);
+        const candidateProfile = profiles[0];
+        const existingCvUrl = candidateProfile?.cvUrl || "";
+        const existingCvFileName = candidateProfile?.cvFilename || "";
+
+        setProfileCvUrl(existingCvUrl);
+        setProfileCvFileName(
+          existingCvFileName || getFileNameFromUrl(existingCvUrl),
+        );
+
+        if (existingCvUrl) {
+          setSelectedCvSource("profile");
+          setCvUrl(existingCvUrl);
+          setCvFileName(
+            existingCvFileName || getFileNameFromUrl(existingCvUrl),
+          );
+        } else {
+          if (uploadedCvUrl) {
+            setSelectedCvSource("upload");
+            setCvUrl(uploadedCvUrl);
+            setCvFileName(
+              uploadedCvFileName || getFileNameFromUrl(uploadedCvUrl),
+            );
+          } else {
+            setSelectedCvSource("upload");
+            setCvUrl("");
+            setCvFileName("");
+          }
+        }
+      } catch {
+        setProfileCvUrl("");
+        setProfileCvFileName("");
+      } finally {
+        setLoadingProfileCv(false);
+      }
+    };
+
+    void loadCandidateCv();
+  }, [applicationModalOpen, isAuthenticated, user]);
 
   const openApplicationFlow = () => {
     if (!id || !job) return;
@@ -248,14 +341,49 @@ const JobDetail = () => {
 
   const handleRegisterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (registerPassword !== registerConfirmPassword) {
+      toast({
+        title: "Passwords do not match",
+        description: "Please make sure both passwords are the same.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setAuthLoading(true);
 
     try {
-      const response = await api.auth.register(
+      await api.auth.register(registerEmail, registerPassword, "CANDIDATE");
+
+      setRegisterStep("otp");
+      toast({
+        title: "OTP sent",
+        description: "Check your email for the verification code.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleRegisterOtpSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAuthLoading(true);
+
+    try {
+      const response = await api.auth.verifyOtp(
         registerEmail,
+        registerOtp,
         registerPassword,
         "CANDIDATE",
       );
+
       login(response.user);
       prepareApplicationForm(response.user.email);
       setAuthModalOpen(false);
@@ -266,7 +394,7 @@ const JobDetail = () => {
       });
     } catch (error: any) {
       toast({
-        title: "Registration failed",
+        title: "OTP verification failed",
         description: error.message,
         variant: "destructive",
       });
@@ -321,10 +449,11 @@ const JobDetail = () => {
         throw new Error(payload?.error?.message || "CV upload failed");
       }
 
-      console.log(payload, "payload");
-
       setCvUrl(payload.secure_url || "");
       setCvFileName(file.name);
+      setUploadedCvUrl(payload.secure_url || "");
+      setUploadedCvFileName(file.name);
+      setSelectedCvSource("upload");
       toast({ title: "CV uploaded", description: "Your CV URL is ready." });
     } catch (error: any) {
       toast({
@@ -645,7 +774,7 @@ const JobDetail = () => {
               {/* Tech stack */}
               <div className="mb-4">
                 {job.techStack.length > 0 && (
-                  <div className="flex flex-wrap gap-8 mt-5">
+                  <div className="flex flex-wrap gap-4 mt-5">
                     {job.techStack.map((tech) => {
                       const matchedTech = TECH_STACK_OPTIONS.find(
                         (option) =>
@@ -810,23 +939,47 @@ const JobDetail = () => {
                   </div>
                 </>
               ) : canManageJob ? (
-                <div className="flex gap-2 items-center">
-                  <Link to={`/recruiter/create-job?edit=${job.id}`}>
-                    <button className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-semibold rounded-xl shadow-sm hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer">
-                      <Pencil className="h-4 w-4" />
-                      Edit
+                <>
+                  {/* <div className="flex gap-2 items-center">
+                    <Link to={`/recruiter/create-job?edit=${job.id}`}>
+                      <button className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm font-semibold rounded-xl shadow-sm hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer">
+                        <Pencil className="h-4 w-4" />
+                        Edit
+                      </button>
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => setDeleteModalOpen(true)}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-700 border border-rose-200 text-sm font-semibold rounded-xl shadow-sm hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-60"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {deleting ? "Deleting..." : "Delete"}
                     </button>
-                  </Link>
-                  <button
-                    type="button"
-                    disabled={deleting}
-                    onClick={() => setDeleteModalOpen(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-700 border border-rose-200 text-sm font-semibold rounded-xl shadow-sm hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:-translate-y-0.5 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-60"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {deleting ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
+                  </div> */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const saved = toggleSaved(job);
+                        toast({
+                          title: saved ? "Job saved" : "Removed from saved",
+                        });
+                      }}
+                      className={`flex justify-center items-center px-4 py-2 gap-1.5 rounded-lg border transition-colors ${jobSaved ? "bg-indigo-100/70 dark:bg-indigo-500/20 border-indigo-200 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-300" : "bg-transparent border-border hover:bg-muted text-foreground"}`}
+                    >
+                      <Bookmark className="h-3.5 w-3.5" />
+                      {jobSaved ? "Saved" : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleShareJob}
+                      className="flex justify-center items-center gap-1.5 px-4 py-2 bg-transparent border border-border hover:bg-muted text-foreground rounded-lg transition-colors"
+                    >
+                      <Share2 className="h-3.5 w-3.5" /> Share
+                    </button>
+                  </div>
+                </>
               ) : !isAuthenticated ? (
                 <>
                   {job.externalJob && job.applyLink ? (
@@ -901,7 +1054,15 @@ const JobDetail = () => {
         </div>
       </div>
 
-      <Dialog open={authModalOpen} onOpenChange={setAuthModalOpen}>
+      <Dialog
+        open={authModalOpen}
+        onOpenChange={(open) => {
+          setAuthModalOpen(open);
+          if (!open) {
+            resetAuthForm();
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Sign in to apply</DialogTitle>
@@ -912,7 +1073,10 @@ const JobDetail = () => {
 
           <Tabs
             value={authTab}
-            onValueChange={(value) => setAuthTab(value as "login" | "register")}
+            onValueChange={(value) => {
+              setAuthTab(value as "login" | "register");
+              setRegisterStep("details");
+            }}
           >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -943,6 +1107,18 @@ const JobDetail = () => {
                     required
                   />
                 </div>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Use your account password to sign in.
+                  </p>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-primary hover:underline"
+                    onClick={() => setAuthModalOpen(false)}
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <Button
                   type="submit"
                   className="flex w-full items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-sm font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 active:scale-95 transition-all duration-150 cursor-pointer"
@@ -962,53 +1138,152 @@ const JobDetail = () => {
             </TabsContent>
 
             <TabsContent value="register">
-              <form className="space-y-4" onSubmit={handleRegisterSubmit}>
-                <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    value={registerEmail}
-                    onChange={(event) => setRegisterEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <Input
-                    id="register-password"
-                    type="password"
-                    value={registerPassword}
-                    onChange={(event) =>
-                      setRegisterPassword(event.target.value)
-                    }
-                    placeholder="Create a password"
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  New accounts created here are candidate accounts so they can
-                  apply right away.
-                </p>
-                <Button
-                  type="submit"
-                  className="flex w-full items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-sm font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 active:scale-95 transition-all duration-150 cursor-pointer"
-                  disabled={authLoading}
-                >
-                  {authLoading ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Creating
-                      account...
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2">
-                      <UserPlus className="h-4 w-4" /> Create account
-                    </span>
-                  )}
-                </Button>
-              </form>
+              {registerStep === "details" ? (
+                <form className="space-y-4" onSubmit={handleRegisterSubmit}>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-email">Email</Label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      value={registerEmail}
+                      onChange={(event) => setRegisterEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-password">Password</Label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      value={registerPassword}
+                      onChange={(event) =>
+                        setRegisterPassword(event.target.value)
+                      }
+                      placeholder="Create a password"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-confirm-password">
+                      Confirm password
+                    </Label>
+                    <Input
+                      id="register-confirm-password"
+                      type="password"
+                      value={registerConfirmPassword}
+                      onChange={(event) =>
+                        setRegisterConfirmPassword(event.target.value)
+                      }
+                      placeholder="Re-enter your password"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  {registerConfirmPassword &&
+                    registerPassword !== registerConfirmPassword && (
+                      <p className="text-xs text-destructive">
+                        Passwords do not match
+                      </p>
+                    )}
+                  <p className="text-xs text-muted-foreground">
+                    New accounts created here are candidate accounts so they can
+                    apply right away.
+                  </p>
+                  <Button
+                    type="submit"
+                    className="flex w-full items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-sm font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 active:scale-95 transition-all duration-150 cursor-pointer"
+                    disabled={authLoading}
+                  >
+                    {authLoading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Sending
+                        OTP...
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2">
+                        <UserPlus className="h-4 w-4" /> Create account
+                      </span>
+                    )}
+                  </Button>
+                </form>
+              ) : (
+                <form className="space-y-4" onSubmit={handleRegisterOtpSubmit}>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-otp">OTP Code</Label>
+                    <Input
+                      id="register-otp"
+                      type="text"
+                      inputMode="numeric"
+                      value={registerOtp}
+                      onChange={(event) =>
+                        setRegisterOtp(
+                          event.target.value.replace(/\D/g, "").slice(0, 6),
+                        )
+                      }
+                      placeholder="000000"
+                      required
+                      maxLength={6}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enter the verification code sent to {registerEmail}.
+                  </p>
+                  <Button
+                    type="submit"
+                    className="flex w-full items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-sm font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 active:scale-95 transition-all duration-150 cursor-pointer"
+                    disabled={authLoading || registerOtp.length !== 6}
+                  >
+                    {authLoading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Verifying...
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-2">
+                        <UserPlus className="h-4 w-4" /> Verify & Create
+                      </span>
+                    )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="w-full"
+                    onClick={async () => {
+                      setAuthLoading(true);
+                      try {
+                        await api.auth.resendOtp(registerEmail);
+                        toast({
+                          title: "OTP resent",
+                          description: "Check your email for the new code.",
+                        });
+                      } catch (error: any) {
+                        toast({
+                          title: "Could not resend OTP",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setAuthLoading(false);
+                      }
+                    }}
+                    disabled={authLoading}
+                  >
+                    Resend code
+                  </Button>
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-1"
+                    onClick={() => setRegisterStep("details")}
+                    disabled={authLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Back
+                  </button>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </DialogContent>
@@ -1052,50 +1327,126 @@ const JobDetail = () => {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    CV Upload
+                    Choose CV
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    It will automatically submit the generated URL.
+                    Use your saved CV or upload a new one for this application.
                   </p>
                 </div>
-                <Button
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2">
+                <button
                   type="button"
-                  className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-sm font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 dark:hover:shadow-indigo-900/40 active:scale-95 transition-all duration-150 cursor-pointer"
-                  onClick={() => cvInputRef.current?.click()}
-                  disabled={uploadingCv}
+                  onClick={() => {
+                    if (!profileCvUrl) return;
+                    setSelectedCvSource("profile");
+                    setCvUrl(profileCvUrl);
+                    setCvFileName(
+                      profileCvFileName || getFileNameFromUrl(profileCvUrl),
+                    );
+                  }}
+                  disabled={!profileCvUrl || loadingProfileCv}
+                  className={`rounded-lg border px-4 py-3 text-left transition-colors ${selectedCvSource === "profile" ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-border bg-white text-foreground hover:bg-muted"} ${!profileCvUrl ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
-                  {uploadingCv ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-2">
-                      <Upload className="h-4 w-4" /> Upload CV
-                    </span>
-                  )}
-                </Button>
-              </div>
-              <input
-                ref={cvInputRef}
-                type="file"
-                accept="application/pdf,.pdf"
-                className="hidden"
-                onChange={handleCvUpload}
-              />
-              <div className="space-y-2">
-                {/* <Label htmlFor="cv-url">Uploaded CV</Label> */}
-                {cvFileName ? (
-                  <p className="flex items-center gap-2 text-sm font-medium text-emerald-600 break-all">
-                    <FileUp className="h-4 w-4 shrink-0" />
-                    {cvFileName}
+                  <p className="text-sm font-medium">My CV</p>
+                  <p className="mt-1 text-xs text-muted-foreground break-all">
+                    {loadingProfileCv
+                      ? "Checking your profile CV..."
+                      : profileCvUrl
+                        ? profileCvFileName || getFileNameFromUrl(profileCvUrl)
+                        : "No saved CV found"}
                   </p>
-                ) : (
-                  <></>
-                  // <p className="text-sm text-muted-foreground">
-                  //   The uploaded CV filename will appear here.
-                  // </p>
-                )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCvSource("upload");
+                    setCvUrl(uploadedCvUrl);
+                    setCvFileName(
+                      uploadedCvFileName || getFileNameFromUrl(uploadedCvUrl),
+                    );
+                  }}
+                  className={`rounded-lg border px-4 py-3 text-left transition-colors ${selectedCvSource === "upload" ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-border bg-white text-foreground hover:bg-muted"}`}
+                >
+                  <p className="text-sm font-medium">Upload new CV</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {uploadedCvUrl
+                      ? uploadedCvFileName || getFileNameFromUrl(uploadedCvUrl)
+                      : "Upload a fresh CV just for this job."}
+                  </p>
+                </button>
               </div>
+
+              {selectedCvSource === "profile" && profileCvUrl ? (
+                <div className="rounded-lg border bg-white p-3 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">Using My CV</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {profileCvFileName || getFileNameFromUrl(profileCvUrl)}
+                      </p>
+                    </div>
+                    <a
+                      href={profileCvUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Open
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3 rounded-lg border bg-white p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Upload CV
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        The uploaded file will replace the selected CV for this
+                        application.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-sm font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-200 dark:hover:shadow-indigo-900/40 active:scale-95 transition-all duration-150 cursor-pointer"
+                      onClick={() => cvInputRef.current?.click()}
+                      disabled={uploadingCv}
+                    >
+                      {uploadingCv ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                          Uploading...
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-2">
+                          <Upload className="h-4 w-4" /> Upload CV
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                  <input
+                    ref={cvInputRef}
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    className="hidden"
+                    onChange={handleCvUpload}
+                  />
+                  {cvFileName ? (
+                    <p className="flex items-center gap-2 text-sm font-medium text-emerald-600 break-all">
+                      <FileUp className="h-4 w-4 shrink-0" />
+                      {cvFileName}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No new CV uploaded yet.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <DialogFooter>

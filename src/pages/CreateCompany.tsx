@@ -17,6 +17,7 @@ import { COMPANY_SIZES, HIRING_STATUSES } from "@/lib/constants";
 import { Building2 } from "lucide-react";
 
 const CreateCompany = () => {
+  const currentYear = new Date().getFullYear();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -57,6 +58,16 @@ const CreateCompany = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (form.foundedYear > currentYear) {
+      toast({
+        title: "Invalid founded year",
+        description: "Founded year cannot be greater than the current year.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       if (existing) {
@@ -166,10 +177,14 @@ const CreateCompany = () => {
                 <Input
                   type="number"
                   value={form.foundedYear}
+                  max={currentYear}
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      foundedYear: parseInt(e.target.value) || 2024,
+                      foundedYear: Math.min(
+                        parseInt(e.target.value) || currentYear,
+                        currentYear,
+                      ),
                     })
                   }
                 />

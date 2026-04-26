@@ -4,7 +4,7 @@ import { Loader2, Search, ChevronDown, Filter } from "lucide-react";
 import JobCard from "@/components/JobCard";
 import TechStackFilter from "@/components/TechStackFilter";
 import FilterSidebar from "@/components/FilterSidebar";
-import { api, Job } from "@/lib/api";
+import { api, clearApiCache, Job } from "@/lib/api";
 import type { JobsListParams } from "@/lib/api";
 import {
   Sheet,
@@ -42,19 +42,19 @@ const CustomSelect = ({
     options.find((opt) => opt.value === value) || options[0];
 
   return (
-    <div className="relative w-24" ref={ref}>
+    <div className="relative w-44" ref={ref}>
       <button
         type="button"
-        className="flex h-10 w-full items-center justify-between bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none"
+        className="flex h-10 w-full items-center justify-end gap-1 bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none"
         onClick={() => setOpen(!open)}
       >
-        <span>{selectedOption.label}</span>
+        <span className="truncate text-left">{selectedOption.label}</span>
         <ChevronDown
-          className={`h-4 w-4 opacity-50 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 opacity-50 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md bg-popover shadow-md py-1 border border-border">
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover py-1 shadow-md">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -119,14 +119,20 @@ const JobCardSkeleton = () => (
 const Jobs = () => {
   const PAGE_SIZE = 12;
   const [searchParams, setSearchParams] = useSearchParams();
+  type SortOption = "newest" | "oldest" | "salary-high" | "salary-low";
 
   const initialSearch = searchParams.get("search") || "";
   const initialTech = (searchParams.get("tech") || "")
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  const initialSort =
-    searchParams.get("sort") === "salary" ? "salary" : "newest";
+  const initialSort = (() => {
+    const sort = searchParams.get("sort");
+    if (sort === "oldest" || sort === "salary-high" || sort === "salary-low") {
+      return sort;
+    }
+    return "newest";
+  })();
   const initialRemote = searchParams.get("remote") === "true";
   const initialJobType = searchParams.get("type")
     ? [searchParams.get("type") as string]
@@ -144,7 +150,7 @@ const Jobs = () => {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [totalJobs, setTotalJobs] = useState(0);
   const [selectedTechs, setSelectedTechs] = useState<string[]>(initialTech);
-  const [sortBy, setSortBy] = useState<"newest" | "salary">(initialSort);
+  const [sortBy, setSortBy] = useState<SortOption>(initialSort);
   const [filters, setFilters] = useState({
     remoteOnly: initialRemote,
     jobType: initialJobType,
@@ -153,6 +159,7 @@ const Jobs = () => {
   });
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const requestKeyRef = useRef(0);
+  const filterTransitionRef = useRef(false);
 
   const searchParam = searchParams.get("search") || "";
 
@@ -193,6 +200,9 @@ const Jobs = () => {
     const loadInitialJobs = async () => {
       const requestKey = Date.now();
       requestKeyRef.current = requestKey;
+      filterTransitionRef.current = true;
+
+      clearApiCache();
 
       if (jobs.length === 0) {
         setLoading(true);
@@ -216,6 +226,7 @@ const Jobs = () => {
         if (requestKeyRef.current !== requestKey) return;
         setLoading(false);
         setRefreshing(false);
+        filterTransitionRef.current = false;
       }
     };
 
@@ -224,6 +235,7 @@ const Jobs = () => {
 
   useEffect(() => {
     if (page === 1) return;
+    if (filterTransitionRef.current) return;
 
     const loadMore = async () => {
       setLoadingMore(true);
@@ -322,7 +334,7 @@ const Jobs = () => {
       <div className="container max-w-6xl py-0">
         <div className="flex gap-8">
           {/* Sidebar filters */}
-          <div className="hidden md:block w-64 shrink-0 sticky top-52 self-start">
+          <div className="hidden lg:block w-64 shrink-0 sticky top-52 self-start">
             <FilterSidebar filters={filters} onChange={setFilters} />
           </div>
 
@@ -342,10 +354,12 @@ const Jobs = () => {
               <div className="flex items-center  justify-end gap-3 rounded-md border-transparent bg-transparent">
                 <CustomSelect
                   value={sortBy}
-                  onChange={(value) => setSortBy(value as "newest" | "salary")}
+                  onChange={(value) => setSortBy(value as SortOption)}
                   options={[
                     { label: "Newest", value: "newest" },
-                    { label: "Salary ↓", value: "salary" },
+                    { label: "Oldest", value: "oldest" },
+                    { label: "Salary: High to Low", value: "salary-high" },
+                    { label: "Salary: Low to High", value: "salary-low" },
                   ]}
                 />
               </div>

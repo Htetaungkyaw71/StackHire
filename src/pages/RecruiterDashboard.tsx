@@ -33,6 +33,7 @@ import {
   Bookmark,
   Menu,
   X,
+  Share2,
 } from "lucide-react";
 
 type SidebarTab = "overview" | "jobs" | "company" | "saved";
@@ -196,6 +197,7 @@ const RecruiterDashboard = () => {
       setDeleteModalOpen(false);
       setJobToDelete(null);
     } catch (err: any) {
+      console.log(err);
       toast({
         title: "Error",
         description: err.message,
@@ -712,78 +714,95 @@ const JobRow = ({
   job: Job;
   navigate: (path: string) => void;
   onDelete: (id: string) => void;
-}) => (
-  <div
-    className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 cursor-pointer hover:bg-muted transition-colors group gap-2"
-    onClick={() => navigate(`/jobs/${job.id}`)}
-  >
-    <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-      <div className="w-8 md:w-9 h-8 md:h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">
-        <Briefcase className="w-3.5 md:w-4 h-3.5 md:h-4 text-indigo-400 dark:text-indigo-300" />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs md:text-sm font-semibold text-foreground truncate">
-          {job.title}
-        </p>
-        <div className="flex items-center gap-1 md:gap-2 mt-0.5 text-[10px] md:text-xs text-muted-foreground flex-wrap">
-          <span className="flex items-center gap-0.5">
-            <MapPin className="w-2.5 md:w-3 h-2.5 md:h-3" /> {job.location}
-          </span>
-          <span>·</span>
-          <span>{job.type}</span>
-          <span>·</span>
-          <span>{job.level}</span>
-        </div>
-        <div className="flex gap-1 mt-1.5 flex-wrap">
-          {job.techStack.slice(0, 2).map((t) => (
-            <span
-              key={t}
-              className="px-1.5 py-0.5 rounded-md text-[9px] md:text-[10px] font-semibold bg-muted text-muted-foreground"
-            >
-              {t}
-            </span>
-          ))}
-          {job.techStack.length > 2 && (
-            <span className="text-[9px] md:text-[10px] text-slate-400 leading-none pt-1">
-              +{job.techStack.length - 2}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
+}) => {
+  const { toast } = useToast();
+  const handleShareJob = async (e: any) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/jobs/${job.id}`;
 
-    <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
-      <Link to={`/jobs/${job.id}`} onClick={(e) => e.stopPropagation()}>
+    try {
+      await navigator.clipboard.writeText(url);
+
+      toast({ title: "Job Link copied" });
+    } catch {
+      toast({ title: "Job Link copied" });
+    }
+  };
+
+  return (
+    <div
+      className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 cursor-pointer hover:bg-muted transition-colors group gap-2"
+      onClick={() => navigate(`/jobs/${job.id}`)}
+    >
+      <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+        <div className="w-8 md:w-9 h-8 md:h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">
+          <Briefcase className="w-3.5 md:w-4 h-3.5 md:h-4 text-indigo-400 dark:text-indigo-300" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs md:text-sm font-semibold text-foreground truncate">
+            {job.title}
+          </p>
+          <div className="flex items-center gap-1 md:gap-2 mt-0.5 text-[10px] md:text-xs text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-0.5">
+              <MapPin className="w-2.5 md:w-3 h-2.5 md:h-3" /> {job.location}
+            </span>
+            <span>·</span>
+            <span>{job.type}</span>
+            <span>·</span>
+            <span>{job.level}</span>
+          </div>
+          <div className="flex gap-1 mt-1.5 flex-wrap">
+            {job.techStack.slice(0, 2).map((t) => (
+              <span
+                key={t}
+                className="px-1.5 py-0.5 rounded-md text-[9px] md:text-[10px] font-semibold bg-muted text-muted-foreground"
+              >
+                {t}
+              </span>
+            ))}
+            {job.techStack.length > 2 && (
+              <span className="text-[9px] md:text-[10px] text-slate-400 leading-none pt-1">
+                +{job.techStack.length - 2}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
         <button
+          onClick={handleShareJob}
           title="View"
           className="p-1.5 md:p-2 rounded-lg text-muted-foreground hover:bg-indigo-50 dark:hover:bg-indigo-500/15 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors"
         >
-          <SquareArrowOutUpRight className="w-3.5 md:w-4 h-3.5 md:h-4" />
+          <Share2 className="w-3.5 md:w-4 h-3.5 md:h-4" />
+          {/* <SquareArrowOutUpRight className="w-3.5 md:w-4 h-3.5 md:h-4" /> */}
         </button>
-      </Link>
-      <Link
-        to={`/recruiter/create-job?edit=${job.id}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          title="Edit"
-          className="p-1.5 md:p-2 rounded-lg text-muted-foreground hover:bg-green-50 dark:hover:bg-green-500/15 hover:text-green-600 dark:hover:text-green-300 transition-colors"
+
+        <Link
+          to={`/recruiter/create-job?edit=${job.id}`}
+          onClick={(e) => e.stopPropagation()}
         >
-          <Pencil className="w-3.5 md:w-4 h-3.5 md:h-4" />
+          <button
+            title="Edit"
+            className="p-1.5 md:p-2 rounded-lg text-muted-foreground hover:bg-green-50 dark:hover:bg-green-500/15 hover:text-green-600 dark:hover:text-green-300 transition-colors"
+          >
+            <Pencil className="w-3.5 md:w-4 h-3.5 md:h-4" />
+          </button>
+        </Link>
+        <button
+          title="Delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(job.id);
+          }}
+          className="p-1.5 md:p-2 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <Trash2 className="w-3.5 md:w-4 h-3.5 md:h-4" />
         </button>
-      </Link>
-      <button
-        title="Delete"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(job.id);
-        }}
-        className="p-1.5 md:p-2 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-      >
-        <Trash2 className="w-3.5 md:w-4 h-3.5 md:h-4" />
-      </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default RecruiterDashboard;
