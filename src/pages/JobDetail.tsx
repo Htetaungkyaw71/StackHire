@@ -192,6 +192,11 @@ const JobDetail = () => {
 
       if (!canSeeApplications) return;
 
+      if (job.externalJob) {
+        setApplications([]);
+        return;
+      }
+
       setLoadingApplications(true);
       try {
         const apps = await api.applications.getForJob(id);
@@ -816,15 +821,22 @@ const JobDetail = () => {
               ></div>
             </div>
 
-            {canManageJob && (
+            {canManageJob && !job.externalJob && (
               <div className="bg-white shadow-lg border border-gray-100 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-semibold text-lg text-foreground">
                     Applications
                   </h2>
-                  <span className="text-sm text-muted-foreground">
-                    {applications.length} total
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">
+                      {applications.length} total
+                    </span>
+                    <Button asChild size="sm" variant="outline">
+                      <Link to={`/recruiter/jobs/${job.id}/applications`}>
+                        Open board
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
 
                 {loadingApplications ? (
@@ -867,12 +879,13 @@ const JobDetail = () => {
                               className="duration-300"
                               size="sm"
                               variant="outline"
-                              onClick={() => {
-                                setSelectedApplication(app);
-                                setSelectedApplicationId(app.id);
-                              }}
+                              onClick={() =>
+                                navigate(
+                                  `/recruiter/jobs/${job.id}/applications`,
+                                )
+                              }
                             >
-                              Show details
+                              Open board
                             </Button>
                           </div>
                         </div>

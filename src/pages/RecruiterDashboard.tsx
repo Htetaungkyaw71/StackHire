@@ -149,6 +149,8 @@ const RecruiterDashboard = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalApplicants, setTotalApplicants] = useState(0);
+  const [avgTimeToFill, setAvgTimeToFill] = useState<string>("—");
   const [activeTab, setActiveTab] = useState<SidebarTab>("overview");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
@@ -160,11 +162,15 @@ const RecruiterDashboard = () => {
 
   const loadData = async () => {
     try {
-      const [profilesRes, companiesRes, jobsRes] = await Promise.all([
-        api.recruiter.get().catch(() => []),
-        api.company.get().catch(() => []),
-        api.jobs.list().catch(() => []),
-      ]);
+      const [profilesRes, companiesRes, jobsRes, summaryRes] =
+        await Promise.all([
+          api.recruiter.get().catch(() => []),
+          api.company.get().catch(() => []),
+          api.jobs.list().catch(() => []),
+          api.applications
+            .getRecruiterSummary()
+            .catch(() => ({ totalApplicants: 0, avgTimeToFillDays: null })),
+        ]);
 
       if (profilesRes.length === 0) {
         navigate("/recruiter/profile");
@@ -177,7 +183,16 @@ const RecruiterDashboard = () => {
         navigate("/recruiter/create-company");
         return;
       }
-      setJobs(jobsRes.filter((j) => j.postedById === user?.id));
+
+      const recruiterJobs = jobsRes.filter((j) => j.postedById === user?.id);
+      setJobs(recruiterJobs);
+
+      setTotalApplicants(summaryRes.totalApplicants);
+      setAvgTimeToFill(
+        summaryRes.avgTimeToFillDays !== null
+          ? `${summaryRes.avgTimeToFillDays.toFixed(1)} days`
+          : "—",
+      );
     } catch {}
     setLoading(false);
   };
@@ -192,10 +207,10 @@ const RecruiterDashboard = () => {
 
     try {
       await api.jobs.delete(jobToDelete);
-      setJobs(jobs.filter((j) => j.id !== jobToDelete));
       toast({ title: "Job deleted successfully" });
       setDeleteModalOpen(false);
       setJobToDelete(null);
+      await loadData();
     } catch (err: any) {
       console.log(err);
       toast({
@@ -382,7 +397,7 @@ const RecruiterDashboard = () => {
                   },
                   {
                     label: "Total Applicants",
-                    value: "—",
+                    value: totalApplicants,
                     icon: Users,
                     color: "from-emerald-400 to-teal-500",
                     bg: "bg-emerald-50",
@@ -390,7 +405,7 @@ const RecruiterDashboard = () => {
                   },
                   {
                     label: "Avg. Time to Fill",
-                    value: "—",
+                    value: avgTimeToFill,
                     icon: Clock,
                     color: "from-amber-400 to-orange-400",
                     bg: "bg-amber-50",
@@ -790,6 +805,21 @@ const JobRow = ({
             <Pencil className="w-3.5 md:w-4 h-3.5 md:h-4" />
           </button>
         </Link>
+        {!job.externalJob && (
+          <Link
+            to={`/recruiter/jobs/${job.id}/applications`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              title="Applications"
+              disabled={!!job.externalJob}
+              className="p-1.5 md:p-2 rounded-lg text-muted-foreground hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            >
+              <Users className="w-3.5 md:w-4 h-3.5 md:h-4" />
+            </button>
+          </Link>
+        )}
+
         <button
           title="Delete"
           onClick={(e) => {

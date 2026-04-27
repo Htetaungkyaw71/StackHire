@@ -16,6 +16,7 @@ import CandidateProfile from "./pages/CandidateProfile";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import CreateCompany from "./pages/CreateCompany";
 import CreateJob from "./pages/CreateJob";
+import RecruiterApplications from "./pages/RecruiterApplications";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RecruiterProfile from "./pages/RecruiterProfile";
@@ -24,7 +25,9 @@ const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   const location = useLocation();
-  const hideNavbar = location.pathname.startsWith("/recruiter/dashboard");
+  const hideNavbar =
+    location.pathname.startsWith("/recruiter/dashboard") ||
+    location.pathname.startsWith("/recruiter/jobs/");
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -76,6 +79,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute roles={["RECRUITER", "ADMIN"]} enforceOnboarding>
               <CreateJob />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recruiter/jobs/:id/applications"
+          element={
+            <ProtectedRoute roles={["RECRUITER", "ADMIN"]} enforceOnboarding>
+              <RecruiterApplications />
             </ProtectedRoute>
           }
         />

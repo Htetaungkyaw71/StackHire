@@ -106,6 +106,8 @@ export interface CandidateProfile {
   userId?: string;
 }
 
+export type ApplicationStatus = "APPLIED" | "INTERVIEW" | "OFFER" | "REJECTED";
+
 export interface ApplicationUser extends User {
   candidateProfile?: CandidateProfile;
 }
@@ -149,7 +151,7 @@ export type JobWritePayload = Omit<Partial<Job>, "salaryMin" | "salaryMax"> & {
 
 export interface Application {
   id: string;
-  status: "APPLIED" | "SHORTLISTED" | "INTERVIEW" | "OFFER" | "REJECTED";
+  status: ApplicationStatus;
   name?: string | null;
   email?: string | null;
   cv_url?: string | null;
@@ -159,6 +161,7 @@ export interface Application {
   user?: ApplicationUser;
   candidateProfile?: CandidateProfile;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Skill {
@@ -239,6 +242,11 @@ export interface JobsListParams {
   sort?: "newest" | "oldest" | "salary-high" | "salary-low";
 }
 
+export interface RecruiterApplicationSummary {
+  totalApplicants: number;
+  avgTimeToFillDays: number | null;
+}
+
 export const api = {
   auth: {
     login: (email: string, password: string) =>
@@ -310,6 +318,13 @@ export const api = {
     getMine: () => request<Application[]>("/application/me"),
     getForJob: (jobId: string) =>
       request<Application[]>(`/application/${jobId}`),
+    getRecruiterSummary: () =>
+      request<RecruiterApplicationSummary>("/application/recruiter/summary"),
+    updateStatus: (applicationId: string, status: ApplicationStatus) =>
+      request<Application>(`/application/${applicationId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
     apply: (data: {
       jobId: string;
       name: string;
