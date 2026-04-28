@@ -986,7 +986,7 @@ const CandidateProfile = () => {
                 <div className="shadow-lg bg-white border-slate-100  rounded-lg p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                      {user?.email?.charAt(0).toUpperCase()}
+                      {profile?.fullName?.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
                       <h2 className="text-lg font-semibold text-foreground">
