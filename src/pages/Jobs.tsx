@@ -1,6 +1,11 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loader2, Search, ChevronDown, Filter } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Loader2,
+  Search,
+  ChevronDown,
+  Filter,
+} from "lucide-react";
 import JobCard from "@/components/JobCard";
 import TechStackFilter from "@/components/TechStackFilter";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -119,6 +124,7 @@ const JobCardSkeleton = () => (
 const Jobs = () => {
   const PAGE_SIZE = 12;
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   type SortOption = "newest" | "oldest" | "salary-high" | "salary-low";
 
   const initialSearch = searchParams.get("search") || "";
@@ -459,6 +465,25 @@ const Jobs = () => {
           </Sheet>
         </div>
       </div>
+
+      <footer className="container max-w-6xl py-10">
+        <div className="flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} StackHire
+          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+            <Link to="/about" className="text-muted-foreground hover:text-foreground">
+              About
+            </Link>
+            <Link to="/privacy" className="text-muted-foreground hover:text-foreground">
+              Privacy
+            </Link>
+            <Link to="/terms" className="text-muted-foreground hover:text-foreground">
+              Terms
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

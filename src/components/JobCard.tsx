@@ -27,6 +27,7 @@ const JobCard = ({ job }: { job: Job }) => {
         {job?.logo ? (
           <div className="h-auto rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
             <img
+              loading="lazy"
               src={job?.logo}
               alt=""
               className="h-full w-[70px] max-md:hidden"
@@ -49,6 +50,7 @@ const JobCard = ({ job }: { job: Job }) => {
               {job?.logo ? (
                 <div className="h-auto rounded-xl bg-muted flex items-center justify-center shrink-0 text-muted-foreground font-bold text-sm">
                   <img
+                    loading="lazy"
                     src={job?.logo}
                     alt=""
                     className="h-full w-[40px] md:hidden"

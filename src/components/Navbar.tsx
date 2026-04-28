@@ -55,7 +55,8 @@ const Navbar = () => {
           >
             <img
               src="/stackhire.svg"
-              alt=""
+              alt="StackHire"
+              loading="lazy"
               className="md:hidden h-10 w-10 text-primary"
             />
             {/* <Briefcase className="md:hidden h-5 w-5 text-primary" /> */}

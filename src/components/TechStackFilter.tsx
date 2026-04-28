@@ -51,6 +51,7 @@ const TechStackFilter = ({ selected, onToggle }: TechStackFilterProps) => {
               <img
                 src={tech.image}
                 alt={tech.name}
+                loading="lazy"
                 className={`h-8 w-8 object-contain transition-all ${
                   isDimmed ? "grayscale" : ""
                 }`}
