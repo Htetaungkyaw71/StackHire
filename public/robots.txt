@@ -1,3 +1,8 @@
+# robots.txt for your site
+User-agent: *
+Allow: /
+# Sitemap for stackhire.online
+Sitemap: https://stackhire.online/sitemap.xml
 User-agent: Googlebot
 Allow: /
 
