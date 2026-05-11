@@ -41,7 +41,7 @@ const AppRoutes = () => {
       {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Jobs />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
+        <Route path="/jobs/:slugId" element={<JobDetail />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />

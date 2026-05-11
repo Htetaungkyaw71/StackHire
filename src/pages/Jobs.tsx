@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Loader2,
-  Search,
-  ChevronDown,
-  Filter,
-} from "lucide-react";
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+import { Loader2, Search, ChevronDown, Filter } from "lucide-react";
 import JobCard from "@/components/JobCard";
 import TechStackFilter from "@/components/TechStackFilter";
 import FilterSidebar from "@/components/FilterSidebar";
+import { useSeo } from "@/hooks/useSeo";
 import { api, clearApiCache, Job } from "@/lib/api";
 import type { JobsListParams } from "@/lib/api";
 import {
@@ -168,6 +169,25 @@ const Jobs = () => {
   const filterTransitionRef = useRef(false);
 
   const searchParam = searchParams.get("search") || "";
+  const hasSeoFiltering =
+    Boolean(searchParam.trim()) ||
+    selectedTechs.length > 0 ||
+    sortBy !== "newest" ||
+    filters.remoteOnly ||
+    Boolean(filters.jobType[0]) ||
+    Boolean(filters.level[0]) ||
+    Boolean(filters.salaryMin);
+
+  useSeo({
+    title: searchParam.trim()
+      ? `StackHire | ${searchParam.trim()} jobs`
+      : "StackHire | Tech jobs, fast",
+    description:
+      "Browse fresh developer jobs by role, tech stack, location, and remote preference on StackHire.",
+    canonical: `${window.location.origin}/`,
+    noindex: hasSeoFiltering,
+    image: `${window.location.origin}/stackhire.svg`,
+  });
 
   const getRequestParams = (nextPage: number): JobsListParams => ({
     page: nextPage,
@@ -472,13 +492,22 @@ const Jobs = () => {
             © {new Date().getFullYear()} StackHire
           </p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-            <Link to="/about" className="text-muted-foreground hover:text-foreground">
+            <Link
+              to="/about"
+              className="text-muted-foreground hover:text-foreground"
+            >
               About
             </Link>
-            <Link to="/privacy" className="text-muted-foreground hover:text-foreground">
+            <Link
+              to="/privacy"
+              className="text-muted-foreground hover:text-foreground"
+            >
               Privacy
             </Link>
-            <Link to="/terms" className="text-muted-foreground hover:text-foreground">
+            <Link
+              to="/terms"
+              className="text-muted-foreground hover:text-foreground"
+            >
               Terms
             </Link>
           </div>

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useSeo } from "@/hooks/useSeo";
 
 import {
   Dialog,
@@ -99,7 +101,7 @@ const getFileNameFromUrl = (value?: string) => {
 };
 
 const JobDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slugId } = useParams<{ slugId?: string }>();
   const { isAuthenticated, user, login } = useAuth();
   const { toast } = useToast();
   const { isSaved, toggleSaved } = useSavedJobs();
@@ -173,18 +175,40 @@ const JobDetail = () => {
     setRegisterOtp("");
   };
 
+  const jobId = (() => {
+    if (!slugId) return null;
+
+    const uuidMatch = slugId.match(
+      /([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i,
+    );
+
+    if (uuidMatch) return uuidMatch[1];
+
+    const lastDashIndex = slugId.lastIndexOf("-");
+    return lastDashIndex === -1 ? slugId : slugId.slice(lastDashIndex + 1);
+  })();
+
   useEffect(() => {
-    if (!id) return;
+    if (!jobId) return;
     api.jobs
-      .get(id)
+      .get(jobId)
       .then(setJob)
       .catch(() => setJob(null))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [jobId]);
+
+  useEffect(() => {
+    if (!jobId || !job) return;
+
+    const canonical = slugify(job.title || "");
+    if (slugId !== `${canonical}-${jobId}`) {
+      navigate(`/jobs/${canonical}-${jobId}`, { replace: true });
+    }
+  }, [jobId, job, slugId, navigate]);
 
   useEffect(() => {
     const loadApplicationsForRecruiter = async () => {
-      if (!id || !job || !user) return;
+      if (!jobId || !job || !user) return;
 
       const canSeeApplications =
         user.role === "ADMIN" ||
@@ -199,7 +223,7 @@ const JobDetail = () => {
 
       setLoadingApplications(true);
       try {
-        const apps = await api.applications.getForJob(id);
+        const apps = await api.applications.getForJob(jobId);
         setApplications(apps);
       } catch {
         setApplications([]);
@@ -209,25 +233,25 @@ const JobDetail = () => {
     };
 
     void loadApplicationsForRecruiter();
-  }, [id, job, user]);
+  }, [jobId, job, user]);
 
   useEffect(() => {
     const checkIfApplied = async () => {
-      if (!id || !isAuthenticated || user?.role !== "CANDIDATE") {
+      if (!jobId || !isAuthenticated || user?.role !== "CANDIDATE") {
         setHasApplied(false);
         return;
       }
 
       try {
         const mine = await api.applications.getMine();
-        setHasApplied(mine.some((app) => app.jobId === id));
+        setHasApplied(mine.some((app) => app.jobId === jobId));
       } catch {
         setHasApplied(false);
       }
     };
 
     void checkIfApplied();
-  }, [id, isAuthenticated, user]);
+  }, [jobId, isAuthenticated, user]);
 
   useEffect(() => {
     const loadCandidateCv = async () => {
@@ -282,7 +306,7 @@ const JobDetail = () => {
   }, [applicationModalOpen, isAuthenticated, user]);
 
   const openApplicationFlow = () => {
-    if (!id || !job) return;
+    if (!jobId || !job) return;
 
     // Check if it's an external job with apply link
     if (job.externalJob && job.applyLink) {
@@ -474,7 +498,7 @@ const JobDetail = () => {
   const handleApplicationSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!id) return;
+    if (!jobId) return;
 
     if (!cvUrl) {
       toast({
@@ -488,7 +512,7 @@ const JobDetail = () => {
     setApplying(true);
     try {
       await api.applications.apply({
-        jobId: id,
+        jobId,
         name: applicationName,
         email: applicationEmail,
         cv_url: cvUrl,
@@ -550,6 +574,22 @@ const JobDetail = () => {
       toast({ title: "Link copied" });
     }
   };
+
+  const canonicalUrl = job
+    ? `${window.location.origin}/jobs/${slugify(job.title)}-${jobId}`
+    : `${window.location.origin}/jobs/${slugId || ""}`;
+
+  useSeo({
+    title: job
+      ? `${job.title} at ${job.company_name || job.company?.name || "StackHire"} | StackHire`
+      : "Job detail | StackHire",
+    description: job
+      ? `${job.title} in ${job.location}${job.isRemote ? " (Remote)" : ""}. ${job.type} role for ${job.company_name || job.company?.name || "this company"}.`
+      : "Browse developer jobs on StackHire.",
+    canonical: canonicalUrl,
+    image: `${window.location.origin}/stackhire.svg`,
+    noindex: !job,
+  });
 
   if (loading) {
     return (

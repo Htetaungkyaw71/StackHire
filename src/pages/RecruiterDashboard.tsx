@@ -35,6 +35,7 @@ import {
   X,
   Share2,
 } from "lucide-react";
+import { slugify } from "@/lib/utils";
 
 type SidebarTab = "overview" | "jobs" | "company" | "saved";
 
@@ -635,7 +636,7 @@ const RecruiterDashboard = () => {
                       >
                         <div className="min-w-0 flex-1">
                           <Link
-                            to={`/jobs/${job.id}`}
+                            to={`/jobs/${slugify(job.title)}-${job.id}`}
                             className="text-xs md:text-sm font-semibold text-foreground hover:text-indigo-600 dark:hover:text-indigo-300 truncate block"
                           >
                             {job.title}
@@ -733,7 +734,7 @@ const JobRow = ({
   const { toast } = useToast();
   const handleShareJob = async (e: any) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/jobs/${job.id}`;
+    const url = `${window.location.origin}/jobs/${slugify(job.title)}-${job.id}`;
 
     try {
       await navigator.clipboard.writeText(url);
@@ -747,7 +748,7 @@ const JobRow = ({
   return (
     <div
       className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 cursor-pointer hover:bg-muted transition-colors group gap-2"
-      onClick={() => navigate(`/jobs/${job.id}`)}
+      onClick={() => navigate(`/jobs/${slugify(job.title)}-${job.id}`)}
     >
       <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
         <div className="w-8 md:w-9 h-8 md:h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 flex items-center justify-center shrink-0">

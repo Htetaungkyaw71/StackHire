@@ -36,6 +36,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { slugify } from "@/lib/utils";
 
 const AVAILABILITY_OPTIONS = [
   "IMMEDIATE",
@@ -1139,7 +1140,7 @@ const CandidateProfile = () => {
                         </div> */}
                         <div>
                           <Link
-                            to={`/jobs/${app.jobId}`}
+                            to={`/jobs/${slugify(app.job?.title || "")}-${app.jobId}`}
                             className="text-sm font-medium text-foreground hover:text-primary"
                           >
                             {app.job?.title || "Job"}
@@ -1194,7 +1195,7 @@ const CandidateProfile = () => {
                     >
                       <div className="min-w-0">
                         <Link
-                          to={`/jobs/${job.id}`}
+                          to={`/jobs/${slugify(job.title)}-${job.id}`}
                           className="text-sm font-medium text-foreground hover:text-primary"
                         >
                           {job.title}

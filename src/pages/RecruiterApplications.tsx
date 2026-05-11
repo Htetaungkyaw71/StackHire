@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { slugify } from "@/lib/utils";
 import {
   ArrowLeft,
   ExternalLink,
@@ -258,7 +259,9 @@ const RecruiterApplications = () => {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => navigate(`/jobs/${job.id}`, { replace: true })}
+          onClick={() =>
+            navigate(`/jobs/${slugify(job.title)}-${job.id}`, { replace: true })
+          }
           className="gap-2"
         >
           <ArrowLeft className="h-4 w-4" />

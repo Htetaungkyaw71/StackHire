@@ -5,6 +5,7 @@ import { getTechColor } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import { useAuth } from "@/contexts/AuthContext";
+import { slugify } from "@/lib/utils";
 
 const JobCard = ({ job }: { job: Job }) => {
   const { isSaved, toggleSaved } = useSavedJobs();
@@ -21,7 +22,7 @@ const JobCard = ({ job }: { job: Job }) => {
         : null;
 
   return (
-    <Link to={`/jobs/${job.id}`} className="block group">
+    <Link to={`/jobs/${slugify(job.title)}-${job.id}`} className="block group">
       <div className="flex items-center mt-3 rounded-md shadow-md max-md:gap-0 gap-4 max-md:p-4 p-5 bg-card border border-border hover:shadow-lg transition-colors">
         {/* Company logo placeholder */}
         {job?.logo ? (
