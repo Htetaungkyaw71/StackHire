@@ -38,7 +38,7 @@ const FilterSidebar = ({
   };
 
   return (
-    <aside className="space-y-6 py-6 rounded-2xl border border-slate-100 bg-white p-4 shadow-lg">
+    <aside className="space-y-6 py-6 p-4 ">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">Filters</h2>
         <button
@@ -62,7 +62,7 @@ const FilterSidebar = ({
         <h3 className="text-sm font-semibold text-foreground mb-3">
           Popular tags
         </h3>
-        <div className="h-40 overflow-y-auto pr-2">
+        <div className="h-28 overflow-y-auto pr-2">
           <div className="flex flex-wrap gap-2">
             {[
               "Frontend Developer",

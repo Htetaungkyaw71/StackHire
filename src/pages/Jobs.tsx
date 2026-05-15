@@ -378,9 +378,9 @@ const Jobs = () => {
       </div>
 
       <div className="container max-w-6xl py-0">
-        <div className="flex gap-8">
+        <div className="flex gap-8 items-start">
           {/* Sidebar filters */}
-          <div className="hidden lg:block w-[270px] shrink-0 sticky top-52 self-start">
+          <div className="hidden lg:block w-[270px] shrink-0 sticky top-[180px] self-start max-h-[calc(100vh-48px)] rounded-2xl border border-slate-100 bg-white shadow-lg">
             <FilterSidebar
               filters={filters}
               onChange={setFilters}
@@ -518,7 +518,6 @@ const Jobs = () => {
           </Sheet>
         </div>
       </div>
-
       <footer className="container max-w-6xl py-10">
         <div className="flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
