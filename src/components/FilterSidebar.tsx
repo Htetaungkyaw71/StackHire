@@ -2,6 +2,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { SheetClose } from "@/components/ui/sheet";
 import { JOB_TYPES, JOB_LEVELS } from "@/lib/constants";
 
 interface Filters {
@@ -14,9 +15,20 @@ interface Filters {
 interface FilterSidebarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  onTagClick?: (tag: string) => void;
+  wrapWithClose?: boolean;
+  activeSearch?: string;
+  onClear?: () => void;
 }
 
-const FilterSidebar = ({ filters, onChange }: FilterSidebarProps) => {
+const FilterSidebar = ({
+  filters,
+  onChange,
+  onTagClick,
+  wrapWithClose,
+  activeSearch,
+  onClear,
+}: FilterSidebarProps) => {
   const setSingleSelect = (key: "jobType" | "level", value: string) => {
     const current = filters[key][0];
     onChange({
@@ -32,17 +44,87 @@ const FilterSidebar = ({ filters, onChange }: FilterSidebarProps) => {
         <button
           type="button"
           className="text-xs text-muted-foreground hover:text-foreground"
-          onClick={() =>
+          onClick={() => {
             onChange({
               remoteOnly: false,
               jobType: [],
               level: [],
               salaryMin: "",
-            })
-          }
+            });
+            onClear && onClear();
+          }}
         >
           Clear all
         </button>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-3">
+          Popular tags
+        </h3>
+        <div className="h-40 overflow-y-auto pr-2">
+          <div className="flex flex-wrap gap-2">
+            {[
+              "Frontend Developer",
+              "Backend Developer",
+              "Software Engineer",
+              "Full Stack Developer",
+              "JavaScript Developer",
+              "React Developer",
+              "DevOps Engineer",
+              "Data Engineer",
+              "Mobile Developer",
+              "UI/UX Designer",
+              "QA Engineer",
+              "AI Engineer",
+              "Machine Learning Engineer",
+              "Next.js Developer",
+              "TypeScript Developer",
+              "Golang Developer",
+              "Rust Developer",
+              "Cloud Architect",
+              "Site Reliability Engineer",
+              "DevSecOps Engineer",
+              "Product Manager",
+              "Data Scientist",
+              "Prompt Engineer",
+              "Cybersecurity Engineer",
+              "Automation Engineer",
+              "Platform Engineer",
+              "Solutions Architect",
+              "Blockchain Developer",
+              "Embedded Systems Engineer",
+              "Product Designer",
+            ].map((tag) => {
+              const isActive =
+                !!activeSearch &&
+                activeSearch.trim().toLowerCase() === tag.toLowerCase();
+              const btn = (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => onTagClick && onTagClick(tag)}
+                  className={`rounded-full border px-2 py-1 sm:px-3 sm:py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
+                    isActive
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-label={`Search for ${tag}`}
+                >
+                  {tag}
+                </button>
+              );
+
+              return wrapWithClose ? (
+                <SheetClose asChild key={tag}>
+                  {btn}
+                </SheetClose>
+              ) : (
+                btn
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">

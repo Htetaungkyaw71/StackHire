@@ -21,6 +21,11 @@ const Navbar = () => {
   useEffect(() => {
     if (location.pathname === "/") {
       setSearchQuery(searchParams.get("search") || "");
+    } else if (location.pathname.startsWith("/search/")) {
+      const term = decodeURIComponent(
+        location.pathname.replace("/search/", ""),
+      ).replace(/-/g, " ");
+      setSearchQuery(term || "");
     } else {
       setSearchQuery("");
     }

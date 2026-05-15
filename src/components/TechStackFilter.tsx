@@ -39,7 +39,7 @@ const TechStackFilter = ({ selected, onToggle }: TechStackFilterProps) => {
             key={tech.name}
             type="button"
             onClick={() => onToggle(tech.name)}
-            className="flex shrink-0 flex-col items-center gap-2 rounded-xl px-3 py-3 text-xs font-medium transition-all"
+            className="flex shrink-0 flex-col items-center gap-2 rounded-xl px-2 py-2 text-xs font-medium transition-all"
           >
             <div
               className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all ${

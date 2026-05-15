@@ -316,6 +316,25 @@ const Jobs = () => {
 
   const navigate = useNavigate();
 
+  const handleTagClick = (tag: string) => {
+    const normalized = tag.trim().toLowerCase();
+    const current = (searchParam || "").trim().toLowerCase();
+    if (current === normalized) {
+      // toggle off
+      setSearchParams(new URLSearchParams(), { replace: true });
+      navigate("/");
+    } else {
+      navigate(`/?search=${encodeURIComponent(tag)}`);
+    }
+  };
+
+  const handleClearAll = () => {
+    setSelectedTechs([]);
+    setFilters({ remoteOnly: false, jobType: [], level: [], salaryMin: "" });
+    setSearchParams(new URLSearchParams(), { replace: true });
+    navigate("/");
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -327,6 +346,7 @@ const Jobs = () => {
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)]">
+      {/* Popular tags moved into the filters sidebar */}
       {/* Tech stack bar */}
       <div className="flex-1 px-5 py-2 sticky my-3 bg-background/95 w-full top-14 z-50 md:hidden">
         <form
@@ -360,8 +380,14 @@ const Jobs = () => {
       <div className="container max-w-6xl py-0">
         <div className="flex gap-8">
           {/* Sidebar filters */}
-          <div className="hidden lg:block w-64 shrink-0 sticky top-52 self-start">
-            <FilterSidebar filters={filters} onChange={setFilters} />
+          <div className="hidden lg:block w-[270px] shrink-0 sticky top-52 self-start">
+            <FilterSidebar
+              filters={filters}
+              onChange={setFilters}
+              onTagClick={handleTagClick}
+              activeSearch={searchParam}
+              onClear={handleClearAll}
+            />
           </div>
 
           {/* Main content */}
@@ -479,7 +505,14 @@ const Jobs = () => {
                     onToggle={toggleTech}
                   />
                 </div>
-                <FilterSidebar filters={filters} onChange={setFilters} />
+                <FilterSidebar
+                  filters={filters}
+                  onChange={setFilters}
+                  onTagClick={handleTagClick}
+                  wrapWithClose
+                  activeSearch={searchParam}
+                  onClear={handleClearAll}
+                />
               </div>
             </SheetContent>
           </Sheet>
@@ -497,6 +530,12 @@ const Jobs = () => {
               className="text-muted-foreground hover:text-foreground"
             >
               About
+            </Link>
+            <Link
+              to="/contact"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Contact
             </Link>
             <Link
               to="/privacy"
