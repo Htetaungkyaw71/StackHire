@@ -4,6 +4,7 @@ import {
   useLocation,
   useNavigate,
   useSearchParams,
+  useParams,
 } from "react-router-dom";
 import { Loader2, Search, ChevronDown, Filter } from "lucide-react";
 import JobCard from "@/components/JobCard";
@@ -128,7 +129,9 @@ const Jobs = () => {
   const location = useLocation();
   type SortOption = "newest" | "oldest" | "salary-high" | "salary-low";
 
-  const initialSearch = searchParams.get("search") || "";
+  const params = useParams<{ term?: string }>();
+  const routeTerm = params.term ? params.term.replace(/-/g, " ") : "";
+  const initialSearch = searchParams.get("search") || routeTerm || "";
   const initialTech = (searchParams.get("tech") || "")
     .split(",")
     .map((value) => value.trim())
@@ -168,7 +171,7 @@ const Jobs = () => {
   const requestKeyRef = useRef(0);
   const filterTransitionRef = useRef(false);
 
-  const searchParam = searchParams.get("search") || "";
+  const searchParam = searchParams.get("search") || routeTerm || "";
   const hasSeoFiltering =
     Boolean(searchParam.trim()) ||
     selectedTechs.length > 0 ||
@@ -178,16 +181,81 @@ const Jobs = () => {
     Boolean(filters.level[0]) ||
     Boolean(filters.salaryMin);
 
+  // build canonical with query params and page for SEO
+  const canonicalBase = `${window.location.origin}${window.location.pathname}`;
+  const canonicalParams = new URLSearchParams();
+  if (searchParam.trim()) canonicalParams.set("search", searchParam.trim());
+  if (selectedTechs.length > 0) canonicalParams.set("tech", selectedTechs.join(","));
+  if (page && page > 1) canonicalParams.set("page", String(page));
+  const canonicalWithParams = canonicalParams.toString()
+    ? `${canonicalBase}?${canonicalParams.toString()}`
+    : canonicalBase === `${window.location.origin}/` ? `${window.location.origin}/` : canonicalBase;
+
   useSeo({
     title: searchParam.trim()
       ? `StackHire | ${searchParam.trim()} jobs`
       : "StackHire | Tech jobs, fast",
-    description:
-      "Browse fresh developer jobs by role, tech stack, location, and remote preference on StackHire.",
-    canonical: `${window.location.origin}/`,
-    noindex: hasSeoFiltering,
+    description: searchParam.trim()
+      ? `Find ${searchParam.trim()} jobs by tech stack, location and remote preference on StackHire.`
+      : "Browse fresh developer jobs by role, tech stack, location, and remote preference on StackHire.",
+    canonical: canonicalWithParams,
+    // search pages should be indexable; paginated pages should be noindexed
+    noindex: page > 1 ? true : searchParam.trim() ? false : hasSeoFiltering,
     image: `${window.location.origin}/stackhire.svg`,
   });
+
+  // add rel="prev" / rel="next" links for paginated content
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const managedAttr = 'data-seo-managed="true"';
+
+    const setLink = (rel: string, href?: string | null) => {
+      const selector = `link[rel="${rel}"][data-seo-managed="true"]`;
+      let el = document.head.querySelector<HTMLLinkElement>(selector);
+      if (!href) {
+        el?.remove();
+        return;
+      }
+      if (!el) {
+        el = document.createElement("link");
+        el.setAttribute("rel", rel);
+        el.setAttribute("data-seo-managed", "true");
+        document.head.appendChild(el);
+      }
+      el.href = href;
+    };
+
+    const buildPageUrl = (p: number) => {
+      const params = new URLSearchParams();
+      if (searchParam.trim()) params.set("search", searchParam.trim());
+      if (selectedTechs.length > 0) params.set("tech", selectedTechs.join(","));
+      if (p > 1) params.set("page", String(p));
+      return params.toString() ? `${window.location.origin}${window.location.pathname}?${params.toString()}` : `${window.location.origin}${window.location.pathname}`;
+    };
+
+    // prev
+    if (page > 1) {
+      const prevPage = page - 1;
+      const prevUrl = buildPageUrl(prevPage);
+      setLink("prev", prevUrl);
+    } else {
+      setLink("prev", null);
+    }
+
+    // next
+    if (hasNextPage) {
+      const nextUrl = buildPageUrl(page + 1);
+      setLink("next", nextUrl);
+    } else {
+      setLink("next", null);
+    }
+
+    return () => {
+      setLink("prev", null);
+      setLink("next", null);
+    };
+  }, [page, searchParam, selectedTechs, hasNextPage]);
 
   const getRequestParams = (nextPage: number): JobsListParams => ({
     page: nextPage,
