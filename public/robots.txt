@@ -2,7 +2,7 @@
 User-agent: *
 Allow: /
 # Sitemap for stackhire.online
-Sitemap: https://stackhire.online/sitemap.xml
+Sitemap: https://www.stackhire.online/sitemap.xml
 User-agent: Googlebot
 Allow: /
 

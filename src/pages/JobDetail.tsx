@@ -591,6 +591,48 @@ const JobDetail = () => {
     noindex: !job,
   });
 
+  // (deduplicated) JobPosting JSON-LD defined above
+
+  // JobPosting JSON-LD for better SEO / rich results
+  const jobJsonLd = job
+    ? {
+        "@context": "https://schema.org",
+        "@type": "JobPosting",
+        title: job.title,
+        description: job.description ? job.description.replace(/<[^>]+>/g, " ") : "",
+        datePosted: job.createdAt || undefined,
+        employmentType: job.type || undefined,
+        hiringOrganization: {
+          "@type": "Organization",
+          name: job.company_name || job.company?.name || "",
+          ...(job.company?.website ? { sameAs: job.company.website } : {}),
+        },
+        jobLocation: job.isRemote
+          ? { "@type": "Place", name: "Remote" }
+          : {
+              "@type": "Place",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: job.location || "",
+              },
+            },
+        ...(job.salaryMin || job.salaryMax
+          ? {
+              baseSalary: {
+                "@type": "MonetaryAmount",
+                currency: "USD",
+                value: {
+                  "@type": "QuantitativeValue",
+                  ...(job.salaryMin ? { minValue: job.salaryMin } : {}),
+                  ...(job.salaryMax ? { maxValue: job.salaryMax } : {}),
+                  unitText: "MONTH",
+                },
+              },
+            }
+          : {}),
+      }
+    : null;
+
   if (loading) {
     return (
       <div className="min-h-[calc(100vh-3.5rem)] bg-background">
@@ -697,6 +739,12 @@ const JobDetail = () => {
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-background">
+      {jobJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobJsonLd) }}
+        />
+      )}
       {/* Top bar */}
       <div className="mt-5">
         <div className="container flex items-center gap-3 max-w-6xl py-3 max-md:py-0">
