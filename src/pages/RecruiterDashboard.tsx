@@ -12,7 +12,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
-import { api, Job, Company } from "@/lib/api";
+import { api, Job, Company, JobsPagination } from "@/lib/api";
 import ThemeToggle from "@/components/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -34,10 +34,29 @@ import {
   Menu,
   X,
   Share2,
+  ChevronLeft,
 } from "lucide-react";
 import { slugify } from "@/lib/utils";
 
 type SidebarTab = "overview" | "jobs" | "company" | "saved";
+
+const JOBS_PAGE_SIZE = 10;
+
+const emptyJobsPagination: JobsPagination = {
+  page: 1,
+  limit: JOBS_PAGE_SIZE,
+  total: 0,
+  totalPages: 1,
+  hasNextPage: false,
+  hasPrevPage: false,
+};
+
+const getPaginationPages = (currentPage: number, totalPages: number) => {
+  const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  const end = Math.min(totalPages, start + 4);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+};
 
 const DashboardSkeleton = () => (
   <div className="flex h-screen bg-background overflow-hidden flex-col md:flex-row">
@@ -148,6 +167,9 @@ const RecruiterDashboard = () => {
   const { savedJobs, removeJob } = useSavedJobs();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobsPagination, setJobsPagination] =
+    useState<JobsPagination>(emptyJobsPagination);
+  const [jobsLoading, setJobsLoading] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalApplicants, setTotalApplicants] = useState(0);
@@ -161,13 +183,33 @@ const RecruiterDashboard = () => {
     loadData();
   }, []);
 
+  const loadRecruiterJobs = async (page = jobsPagination.page) => {
+    setJobsLoading(true);
+    try {
+      const jobsRes = await api.jobs.listMinePaginated({
+        page,
+        limit: JOBS_PAGE_SIZE,
+      });
+
+      setJobs(jobsRes.data);
+      setJobsPagination(jobsRes.pagination);
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
   const loadData = async () => {
     try {
       const [profilesRes, companiesRes, jobsRes, summaryRes] =
         await Promise.all([
           api.recruiter.get().catch(() => []),
           api.company.get().catch(() => []),
-          api.jobs.list().catch(() => []),
+          api.jobs
+            .listMinePaginated({ page: 1, limit: JOBS_PAGE_SIZE })
+            .catch(() => ({
+              data: [],
+              pagination: emptyJobsPagination,
+            })),
           api.applications
             .getRecruiterSummary()
             .catch(() => ({ totalApplicants: 0, avgTimeToFillDays: null })),
@@ -185,8 +227,8 @@ const RecruiterDashboard = () => {
         return;
       }
 
-      const recruiterJobs = jobsRes.filter((j) => j.postedById === user?.id);
-      setJobs(recruiterJobs);
+      setJobs(jobsRes.data);
+      setJobsPagination(jobsRes.pagination);
 
       setTotalApplicants(summaryRes.totalApplicants);
       setAvgTimeToFill(
@@ -194,8 +236,25 @@ const RecruiterDashboard = () => {
           ? `${summaryRes.avgTimeToFillDays.toFixed(1)} days`
           : "—",
       );
-    } catch {}
-    setLoading(false);
+    } catch {
+      setJobs([]);
+      setJobsPagination(emptyJobsPagination);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJobsPageChange = async (page: number) => {
+    if (
+      jobsLoading ||
+      page === jobsPagination.page ||
+      page < 1 ||
+      page > jobsPagination.totalPages
+    ) {
+      return;
+    }
+
+    await loadRecruiterJobs(page);
   };
 
   const handleDeleteRequest = (jobId: string) => {
@@ -211,7 +270,21 @@ const RecruiterDashboard = () => {
       toast({ title: "Job deleted successfully" });
       setDeleteModalOpen(false);
       setJobToDelete(null);
-      await loadData();
+      const nextPage =
+        jobs.length === 1 && jobsPagination.page > 1
+          ? jobsPagination.page - 1
+          : jobsPagination.page;
+      await loadRecruiterJobs(nextPage);
+
+      const summaryRes = await api.applications
+        .getRecruiterSummary()
+        .catch(() => ({ totalApplicants: 0, avgTimeToFillDays: null }));
+      setTotalApplicants(summaryRes.totalApplicants);
+      setAvgTimeToFill(
+        summaryRes.avgTimeToFillDays !== null
+          ? `${summaryRes.avgTimeToFillDays.toFixed(1)} days`
+          : "—",
+      );
     } catch (err: any) {
       console.log(err);
       toast({
@@ -233,7 +306,7 @@ const RecruiterDashboard = () => {
     { id: "saved" as SidebarTab, label: "Saved", icon: Bookmark },
   ];
 
-  const activeJobsCount = jobs.length;
+  const activeJobsCount = jobsPagination.total;
   const recentJobs = jobs.slice(0, 3);
 
   return (
@@ -296,9 +369,9 @@ const RecruiterDashboard = () => {
                 className={`w-4 h-4 shrink-0 ${activeTab === id ? "text-indigo-500" : "text-muted-foreground group-hover:text-foreground"}`}
               />
               {label}
-              {id === "jobs" && jobs.length > 0 && (
+              {id === "jobs" && jobsPagination.total > 0 && (
                 <span className="ml-auto text-[11px] font-semibold bg-indigo-100 text-indigo-600 rounded-full px-1.5 py-0.5 leading-none">
-                  {jobs.length}
+                  {jobsPagination.total}
                 </span>
               )}
             </button>
@@ -508,11 +581,34 @@ const RecruiterDashboard = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                  {jobs.length} posting{jobs.length !== 1 ? "s" : ""}
+                  {jobsPagination.total} posting
+                  {jobsPagination.total !== 1 ? "s" : ""}
                 </p>
               </div>
               <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
-                {jobs.length === 0 ? (
+                {jobsLoading ? (
+                  <div className="divide-y divide-border">
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 gap-2"
+                      >
+                        <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                          <Skeleton className="w-8 md:w-9 h-8 md:h-9 rounded-xl shrink-0" />
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <Skeleton className="h-4 w-2/3 rounded-full" />
+                            <Skeleton className="h-3 w-1/2 rounded-full" />
+                          </div>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-1">
+                          <Skeleton className="h-8 w-8 rounded-lg" />
+                          <Skeleton className="h-8 w-8 rounded-lg" />
+                          <Skeleton className="h-8 w-8 rounded-lg" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : jobs.length === 0 ? (
                   <div className="py-16 text-center">
                     <Briefcase className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-sm text-muted-foreground mb-4">
@@ -537,6 +633,61 @@ const RecruiterDashboard = () => {
                   </div>
                 )}
               </div>
+              {jobsPagination.totalPages > 1 && (
+                <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Page {jobsPagination.page} of {jobsPagination.totalPages}
+                  </p>
+                  <div className="flex items-center justify-between gap-2 sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!jobsPagination.hasPrevPage || jobsLoading}
+                      onClick={() =>
+                        handleJobsPageChange(jobsPagination.page - 1)
+                      }
+                      className="gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {getPaginationPages(
+                        jobsPagination.page,
+                        jobsPagination.totalPages,
+                      ).map((page) => (
+                        <Button
+                          key={page}
+                          type="button"
+                          variant={
+                            page === jobsPagination.page ? "default" : "ghost"
+                          }
+                          size="icon"
+                          disabled={jobsLoading}
+                          onClick={() => handleJobsPageChange(page)}
+                          className="h-9 w-9"
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!jobsPagination.hasNextPage || jobsLoading}
+                      onClick={() =>
+                        handleJobsPageChange(jobsPagination.page + 1)
+                      }
+                      className="gap-1"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

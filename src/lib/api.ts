@@ -282,6 +282,16 @@ export const api = {
   },
   jobs: {
     list: () => request<Job[]>("/jobs"),
+    listMinePaginated: (params: Pick<JobsListParams, "page" | "limit">) => {
+      const query = new URLSearchParams({
+        page: String(params.page),
+        limit: String(params.limit),
+      });
+
+      return request<JobsListPaginatedResponse>(
+        `/jobs/recruiter/mine?${query.toString()}`,
+      );
+    },
     listPaginated: (params: JobsListParams) => {
       const query = new URLSearchParams({
         page: String(params.page),
