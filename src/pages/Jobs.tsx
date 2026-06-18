@@ -124,11 +124,48 @@ const JobCardSkeleton = () => (
   </div>
 );
 
+type SortOption = "newest" | "oldest" | "salary-high" | "salary-low";
+
+type JobFilters = {
+  remoteOnly: boolean;
+  jobType: string[];
+  level: string[];
+  salaryMin: string;
+};
+
+type JobsViewSnapshot = {
+  filterKey: string;
+  jobs: Job[];
+  page: number;
+  hasNextPage: boolean;
+  totalJobs: number;
+  scrollY: number;
+};
+
+let jobsViewSnapshot: JobsViewSnapshot | null = null;
+
+const getJobsFilterKey = ({
+  searchParam,
+  selectedTechs,
+  sortBy,
+  filters,
+}: {
+  searchParam: string;
+  selectedTechs: string[];
+  sortBy: SortOption;
+  filters: JobFilters;
+}) =>
+  JSON.stringify({
+    searchParam,
+    selectedTechs,
+    sortBy,
+    filters,
+  });
+
 const Jobs = () => {
   const PAGE_SIZE = 12;
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  type SortOption = "newest" | "oldest" | "salary-high" | "salary-low";
 
   const params = useParams<{ term?: string }>();
   const routeTerm = params.term ? params.term.replace(/-/g, " ") : "";
@@ -137,7 +174,7 @@ const Jobs = () => {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  const initialSort = (() => {
+  const initialSort: SortOption = (() => {
     const sort = searchParams.get("sort");
     if (sort === "oldest" || sort === "salary-high" || sort === "salary-low") {
       return sort;
@@ -152,25 +189,38 @@ const Jobs = () => {
     ? [searchParams.get("level") as string]
     : [];
   const initialSalaryMin = searchParams.get("minSalary") || "";
-
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [totalJobs, setTotalJobs] = useState(0);
-  const [selectedTechs, setSelectedTechs] = useState<string[]>(initialTech);
-  const [sortBy, setSortBy] = useState<SortOption>(initialSort);
-  const [filters, setFilters] = useState({
+  const initialFilters = {
     remoteOnly: initialRemote,
     jobType: initialJobType,
     level: initialLevel,
     salaryMin: initialSalaryMin,
+  };
+  const initialFilterKey = getJobsFilterKey({
+    searchParam: initialSearch,
+    selectedTechs: initialTech,
+    sortBy: initialSort,
+    filters: initialFilters,
   });
+  const restoredSnapshot =
+    jobsViewSnapshot?.filterKey === initialFilterKey ? jobsViewSnapshot : null;
+
+  const [jobs, setJobs] = useState<Job[]>(restoredSnapshot?.jobs ?? []);
+  const [loading, setLoading] = useState(!restoredSnapshot);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(restoredSnapshot?.page ?? 1);
+  const [hasNextPage, setHasNextPage] = useState(
+    restoredSnapshot?.hasNextPage ?? true,
+  );
+  const [totalJobs, setTotalJobs] = useState(restoredSnapshot?.totalJobs ?? 0);
+  const [selectedTechs, setSelectedTechs] = useState<string[]>(initialTech);
+  const [sortBy, setSortBy] = useState<SortOption>(initialSort);
+  const [filters, setFilters] = useState<JobFilters>(initialFilters);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const requestKeyRef = useRef(0);
   const filterTransitionRef = useRef(false);
+  const restoredSnapshotRef = useRef(Boolean(restoredSnapshot));
+  const restoredScrollYRef = useRef(restoredSnapshot?.scrollY ?? null);
 
   const searchParam = searchParams.get("search") || routeTerm || "";
   const hasSeoFiltering =
@@ -266,12 +316,69 @@ const Jobs = () => {
     sort: sortBy,
   });
 
-  const activeFilterKey = JSON.stringify({
+  const activeFilterKey = getJobsFilterKey({
     searchParam,
     selectedTechs,
     sortBy,
     filters,
   });
+
+  useEffect(() => {
+    jobsViewSnapshot = {
+      filterKey: activeFilterKey,
+      jobs,
+      page,
+      hasNextPage,
+      totalJobs,
+      scrollY: window.scrollY,
+    };
+  }, [activeFilterKey, jobs, page, hasNextPage, totalJobs]);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const saveScrollPosition = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        jobsViewSnapshot = {
+          filterKey: activeFilterKey,
+          jobs,
+          page,
+          hasNextPage,
+          totalJobs,
+          scrollY: window.scrollY,
+        };
+      });
+    };
+
+    window.addEventListener("scroll", saveScrollPosition, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", saveScrollPosition);
+      if (frame) cancelAnimationFrame(frame);
+      jobsViewSnapshot = {
+        filterKey: activeFilterKey,
+        jobs,
+        page,
+        hasNextPage,
+        totalJobs,
+        scrollY: window.scrollY,
+      };
+    };
+  }, [activeFilterKey, jobs, page, hasNextPage, totalJobs]);
+
+  useEffect(() => {
+    const scrollY = restoredScrollYRef.current;
+    if (scrollY === null || loading) return;
+
+    restoredScrollYRef.current = null;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, left: 0, behavior: "instant" });
+      });
+    });
+  }, [loading]);
 
   useEffect(() => {
     const next = new URLSearchParams();
@@ -299,6 +406,11 @@ const Jobs = () => {
 
   useEffect(() => {
     const loadInitialJobs = async () => {
+      if (restoredSnapshotRef.current) {
+        restoredSnapshotRef.current = false;
+        return;
+      }
+
       const requestKey = Date.now();
       requestKeyRef.current = requestKey;
       filterTransitionRef.current = true;

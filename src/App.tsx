@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,13 +35,15 @@ const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   const location = useLocation();
+  const navigationType = useNavigationType();
   const hideNavbar =
     location.pathname.startsWith("/recruiter/dashboard") ||
     location.pathname.startsWith("/recruiter/jobs/");
 
   useEffect(() => {
+    if (navigationType === "POP") return;
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [location.pathname]);
+  }, [location.pathname, navigationType]);
 
   return (
     <>
