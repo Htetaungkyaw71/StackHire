@@ -45,6 +45,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useSavedJobs } from "@/hooks/useSavedJobs";
 import { APPLICATION_STATUS_COLORS, getTechColor } from "@/lib/constants";
+import { absoluteUrl, DEFAULT_SEO_IMAGE } from "@/lib/seo";
 
 const TECH_STACK_OPTIONS = [
   { name: "JavaScript", image: "/techs/js.png" },
@@ -98,6 +99,13 @@ const getFileNameFromUrl = (value?: string) => {
   } catch {
     return value.split("/").pop() || "Uploaded CV";
   }
+};
+
+const getValidThrough = (datePosted?: string) => {
+  const posted = datePosted ? new Date(datePosted) : new Date();
+  if (Number.isNaN(posted.getTime())) return undefined;
+  posted.setDate(posted.getDate() + 90);
+  return posted.toISOString();
 };
 
 const JobDetail = () => {
@@ -576,8 +584,8 @@ const JobDetail = () => {
   };
 
   const canonicalUrl = job
-    ? `${window.location.origin}/jobs/${slugify(job.title)}-${jobId}`
-    : `${window.location.origin}/jobs/${slugId || ""}`;
+    ? absoluteUrl(`/jobs/${slugify(job.title)}-${jobId}`)
+    : absoluteUrl(`/jobs/${slugId || ""}`);
 
   useSeo({
     title: job
@@ -587,7 +595,7 @@ const JobDetail = () => {
       ? `${job.title} in ${job.location}${job.isRemote ? " (Remote)" : ""}. ${job.type} role for ${job.company_name || job.company?.name || "this company"}.`
       : "Browse developer jobs on StackHire.",
     canonical: canonicalUrl,
-    image: `${window.location.origin}/stackhire.svg`,
+    image: DEFAULT_SEO_IMAGE,
     noindex: !job,
   });
 
@@ -601,14 +609,30 @@ const JobDetail = () => {
         title: job.title,
         description: job.description ? job.description.replace(/<[^>]+>/g, " ") : "",
         datePosted: job.createdAt || undefined,
+        validThrough: getValidThrough(job.createdAt),
         employmentType: job.type || undefined,
         hiringOrganization: {
           "@type": "Organization",
           name: job.company_name || job.company?.name || "",
           ...(job.company?.website ? { sameAs: job.company.website } : {}),
         },
+        ...(job.isRemote
+          ? {
+              jobLocationType: "TELECOMMUTE",
+              applicantLocationRequirements: {
+                "@type": "Country",
+                name: "Worldwide",
+              },
+            }
+          : {}),
         jobLocation: job.isRemote
-          ? { "@type": "Place", name: "Remote" }
+          ? {
+              "@type": "Place",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: job.location || "Remote",
+              },
+            }
           : {
               "@type": "Place",
               address: {

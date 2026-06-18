@@ -2,187 +2,211 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.stackhire.online/</loc>
-    <lastmod>2026-05-26</lastmod>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Frontend%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/about</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.stackhire.online/contact</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.stackhire.online/privacy</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.stackhire.online/terms</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.stackhire.online/search/frontend-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Backend%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/backend-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Software%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/software-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Full%20Stack%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/full-stack-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=JavaScript%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/javascript-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=React%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/react-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=DevOps%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/devops-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Data%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/data-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Mobile%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/mobile-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=UI%2FUX%20Designer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/ui-ux-designer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=QA%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/qa-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=AI%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/ai-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Machine%20Learning%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/machine-learning-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Next.js%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/next-js-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=TypeScript%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/typescript-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Golang%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/golang-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Rust%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/rust-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Cloud%20Architect</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/cloud-architect</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Site%20Reliability%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/site-reliability-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=DevSecOps%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/devsecops-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Product%20Manager</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/product-manager</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Data%20Scientist</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/data-scientist</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Prompt%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/prompt-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Cybersecurity%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/cybersecurity-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Automation%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/automation-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Platform%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/platform-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Solutions%20Architect</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/solutions-architect</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Blockchain%20Developer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/blockchain-developer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Embedded%20Systems%20Engineer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/embedded-systems-engineer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.stackhire.online/?search=Product%20Designer</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://www.stackhire.online/search/product-designer</loc>
+    <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

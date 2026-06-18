@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
+import { useSeo } from "@/hooks/useSeo";
+import { absoluteUrl, DEFAULT_SEO_IMAGE } from "@/lib/seo";
 
 export default function Privacy() {
+  useSeo({
+    title: "Privacy Policy | StackHire",
+    description:
+      "Read the StackHire privacy policy for details about data used to operate the developer job platform.",
+    canonical: absoluteUrl("/privacy"),
+    image: DEFAULT_SEO_IMAGE,
+  });
+
   return (
     <main className="container max-w-3xl py-10">
       <h1 className="text-3xl font-bold tracking-tight">Privacy Policy</h1>
@@ -30,4 +40,3 @@ export default function Privacy() {
     </main>
   );
 }
-

@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useSeo } from "@/hooks/useSeo";
+import { absoluteUrl, DEFAULT_SEO_IMAGE } from "@/lib/seo";
 
 export default function Contact() {
+  useSeo({
+    title: "Contact StackHire",
+    description:
+      "Contact StackHire for help with developer jobs, hiring, or questions about the StackHire job platform.",
+    canonical: absoluteUrl("/contact"),
+    image: DEFAULT_SEO_IMAGE,
+  });
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");

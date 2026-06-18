@@ -36,9 +36,10 @@ const setMetaTag = (
 const setLinkTag = (rel: string, href?: string) => {
   if (typeof document === "undefined") return null;
 
-  let element = document.head.querySelector<HTMLLinkElement>(
-    `link[rel="${rel}"][data-seo-managed="true"]`,
-  );
+  let element =
+    document.head.querySelector<HTMLLinkElement>(
+      `link[rel="${rel}"][data-seo-managed="true"]`,
+    ) || document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
 
   if (!href) {
     element?.remove();

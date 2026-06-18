@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
+import { useSeo } from "@/hooks/useSeo";
+import { absoluteUrl, DEFAULT_SEO_IMAGE } from "@/lib/seo";
 
 export default function About() {
+  useSeo({
+    title: "About StackHire | Tech jobs for developers",
+    description:
+      "Learn how StackHire helps developers discover relevant software jobs by role, tech stack, location, and remote preference.",
+    canonical: absoluteUrl("/about"),
+    image: DEFAULT_SEO_IMAGE,
+  });
+
   return (
     <main className="container max-w-3xl py-10">
       <h1 className="text-3xl font-bold tracking-tight">About StackHire</h1>
@@ -24,4 +34,3 @@ export default function About() {
     </main>
   );
 }
-

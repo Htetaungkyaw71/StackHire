@@ -1,8 +1,17 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useSeo } from "@/hooks/useSeo";
+import { absoluteUrl } from "@/lib/seo";
 
 const NotFound = () => {
   const location = useLocation();
+
+  useSeo({
+    title: "Page not found | StackHire",
+    description: "This StackHire page could not be found.",
+    canonical: absoluteUrl(location.pathname),
+    noindex: true,
+  });
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);

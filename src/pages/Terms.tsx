@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
+import { useSeo } from "@/hooks/useSeo";
+import { absoluteUrl, DEFAULT_SEO_IMAGE } from "@/lib/seo";
 
 export default function Terms() {
+  useSeo({
+    title: "Terms of Use | StackHire",
+    description:
+      "Read the StackHire terms of use for candidates and recruiters using the job platform.",
+    canonical: absoluteUrl("/terms"),
+    image: DEFAULT_SEO_IMAGE,
+  });
+
   return (
     <main className="container max-w-3xl py-10">
       <h1 className="text-3xl font-bold tracking-tight">Terms</h1>
@@ -28,4 +38,3 @@ export default function Terms() {
     </main>
   );
 }
-

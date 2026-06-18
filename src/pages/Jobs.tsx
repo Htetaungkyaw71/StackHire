@@ -13,6 +13,7 @@ import FilterSidebar from "@/components/FilterSidebar";
 import { useSeo } from "@/hooks/useSeo";
 import { api, clearApiCache, Job } from "@/lib/api";
 import type { JobsListParams } from "@/lib/api";
+import { absoluteUrl, DEFAULT_SEO_IMAGE, searchPath } from "@/lib/seo";
 import {
   Sheet,
   SheetContent,
@@ -173,7 +174,6 @@ const Jobs = () => {
 
   const searchParam = searchParams.get("search") || routeTerm || "";
   const hasSeoFiltering =
-    Boolean(searchParam.trim()) ||
     selectedTechs.length > 0 ||
     sortBy !== "newest" ||
     filters.remoteOnly ||
@@ -181,27 +181,22 @@ const Jobs = () => {
     Boolean(filters.level[0]) ||
     Boolean(filters.salaryMin);
 
-  // build canonical with query params and page for SEO
-  const canonicalBase = `${window.location.origin}${window.location.pathname}`;
-  const canonicalParams = new URLSearchParams();
-  if (searchParam.trim()) canonicalParams.set("search", searchParam.trim());
-  if (selectedTechs.length > 0) canonicalParams.set("tech", selectedTechs.join(","));
-  if (page && page > 1) canonicalParams.set("page", String(page));
-  const canonicalWithParams = canonicalParams.toString()
-    ? `${canonicalBase}?${canonicalParams.toString()}`
-    : canonicalBase === `${window.location.origin}/` ? `${window.location.origin}/` : canonicalBase;
+  const searchTerm = searchParam.trim();
+  const canonicalPath = searchTerm ? searchPath(searchTerm) : "/";
+  const canonicalUrl = absoluteUrl(canonicalPath);
+  const pageTitle = searchTerm
+    ? `${searchTerm} Jobs | StackHire`
+    : "StackHire | Tech jobs, fast";
+  const pageDescription = searchTerm
+    ? `Find ${searchTerm} jobs on StackHire. Browse fresh developer roles by tech stack, location, remote preference, and salary.`
+    : "Browse fresh developer jobs by role, tech stack, location, and remote preference on StackHire.";
 
   useSeo({
-    title: searchParam.trim()
-      ? `StackHire | ${searchParam.trim()} jobs`
-      : "StackHire | Tech jobs, fast",
-    description: searchParam.trim()
-      ? `Find ${searchParam.trim()} jobs by tech stack, location and remote preference on StackHire.`
-      : "Browse fresh developer jobs by role, tech stack, location, and remote preference on StackHire.",
-    canonical: canonicalWithParams,
-    // search pages should be indexable; paginated pages should be noindexed
-    noindex: page > 1 ? true : searchParam.trim() ? false : hasSeoFiltering,
-    image: `${window.location.origin}/stackhire.svg`,
+    title: pageTitle,
+    description: pageDescription,
+    canonical: canonicalUrl,
+    noindex: page > 1 || hasSeoFiltering,
+    image: DEFAULT_SEO_IMAGE,
   });
 
   // add rel="prev" / rel="next" links for paginated content
@@ -231,7 +226,9 @@ const Jobs = () => {
       if (searchParam.trim()) params.set("search", searchParam.trim());
       if (selectedTechs.length > 0) params.set("tech", selectedTechs.join(","));
       if (p > 1) params.set("page", String(p));
-      return params.toString() ? `${window.location.origin}${window.location.pathname}?${params.toString()}` : `${window.location.origin}${window.location.pathname}`;
+      return params.toString()
+        ? `${absoluteUrl(window.location.pathname)}?${params.toString()}`
+        : absoluteUrl(window.location.pathname);
     };
 
     // prev
@@ -278,8 +275,11 @@ const Jobs = () => {
 
   useEffect(() => {
     const next = new URLSearchParams();
+    const isSearchRoute = location.pathname.startsWith("/search/");
 
-    if (searchParam.trim()) next.set("search", searchParam.trim());
+    if (!isSearchRoute && searchParam.trim()) {
+      next.set("search", searchParam.trim());
+    }
     if (selectedTechs.length > 0) next.set("tech", selectedTechs.join(","));
     if (sortBy !== "newest") next.set("sort", sortBy);
     if (filters.remoteOnly) next.set("remote", "true");
@@ -288,7 +288,14 @@ const Jobs = () => {
     if (filters.salaryMin) next.set("minSalary", filters.salaryMin);
 
     setSearchParams(next, { replace: true });
-  }, [searchParam, selectedTechs, sortBy, filters, setSearchParams]);
+  }, [
+    location.pathname,
+    searchParam,
+    selectedTechs,
+    sortBy,
+    filters,
+    setSearchParams,
+  ]);
 
   useEffect(() => {
     const loadInitialJobs = async () => {
@@ -317,10 +324,11 @@ const Jobs = () => {
         setJobs([]);
         setHasNextPage(false);
       } finally {
-        if (requestKeyRef.current !== requestKey) return;
-        setLoading(false);
-        setRefreshing(false);
-        filterTransitionRef.current = false;
+        if (requestKeyRef.current === requestKey) {
+          setLoading(false);
+          setRefreshing(false);
+          filterTransitionRef.current = false;
+        }
       }
     };
 
@@ -392,7 +400,7 @@ const Jobs = () => {
       setSearchParams(new URLSearchParams(), { replace: true });
       navigate("/");
     } else {
-      navigate(`/?search=${encodeURIComponent(tag)}`);
+      navigate(searchPath(tag));
     }
   };
 
@@ -406,7 +414,7 @@ const Jobs = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(searchPath(searchQuery.trim()));
     } else {
       navigate("/");
     }

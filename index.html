@@ -3,22 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>StackHire | Tech jobs, fast</title>
+    <title>StackHire | Tech jobs and developer hiring platform</title>
     <meta
       name="description"
-      content="Search fresh developer jobs by role, tech stack, and location. Updated frequently with remote and on-site roles."
+      content="StackHire is a tech job platform for finding fresh developer jobs by role, tech stack, location, remote preference, and salary."
+    />
+    <meta
+      name="keywords"
+      content="StackHire, tech jobs, developer jobs, software engineer jobs, remote developer jobs, programming jobs"
     />
     <meta name="author" content="StackHire" />
+    <meta name="application-name" content="StackHire" />
     <meta name="theme-color" content="#0f172a" />
-    <meta name="robots" content="index,follow" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="googlebot" content="index,follow,max-image-preview:large" />
     <link rel="canonical" href="https://www.stackhire.online/" />
     <link rel="alternate" href="https://www.stackhire.online/" hreflang="en" />
+    <link rel="alternate" href="https://www.stackhire.online/" hreflang="x-default" />
     <link rel="icon" type="image/x-icon" href="/stackhire.svg" />
 
-    <meta property="og:title" content="StackHire | Fresh tech jobs, fast" />
+    <meta property="og:title" content="StackHire | Tech jobs and developer hiring platform" />
     <meta
       property="og:description"
-      content="Search fresh developer jobs by role, tech stack, and location. Updated frequently with remote and on-site roles."
+      content="Find fresh developer jobs on StackHire by role, tech stack, location, remote preference, and salary."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.stackhire.online/" />
@@ -29,10 +36,10 @@
     />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="StackHire | Fresh tech jobs, fast" />
+    <meta name="twitter:title" content="StackHire | Tech jobs and developer hiring platform" />
     <meta
       name="twitter:description"
-      content="Search fresh developer jobs by role, tech stack, and location. Updated frequently with remote and on-site roles."
+      content="Find fresh developer jobs on StackHire by role, tech stack, location, remote preference, and salary."
     />
     <meta name="twitter:site" content="@StackHire" />
     <meta
@@ -43,14 +50,30 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "StackHire",
-        "url": "https://www.stackhire.online/",
-          "potentialAction": {
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.stackhire.online/#organization",
+            "name": "StackHire",
+            "url": "https://www.stackhire.online/",
+            "logo": "https://www.stackhire.online/stackhire.svg",
+            "email": "stackhirejobs@gmail.com"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.stackhire.online/#website",
+            "name": "StackHire",
+            "url": "https://www.stackhire.online/",
+            "publisher": {
+              "@id": "https://www.stackhire.online/#organization"
+            },
+            "potentialAction": {
             "@type": "SearchAction",
             "target": "https://www.stackhire.online/?search={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
       }
     </script>
     <script
