@@ -1,6 +1,12 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const DEFAULT_CACHE_TTL_MS = 60 * 1000;
 
-const responseCache = new Map<string, unknown>();
+type CacheEntry = {
+  data: unknown;
+  expiresAt: number;
+};
+
+const responseCache = new Map<string, CacheEntry>();
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
 const readErrorMessage = async (res: Response) => {
@@ -29,8 +35,12 @@ async function request<T>(
 
   if (method === "GET") {
     const cachedResponse = responseCache.get(cacheKey);
-    if (cachedResponse !== undefined) {
-      return cachedResponse as T;
+    if (cachedResponse && cachedResponse.expiresAt > Date.now()) {
+      return cachedResponse.data as T;
+    }
+
+    if (cachedResponse) {
+      responseCache.delete(cacheKey);
     }
 
     const inFlightRequest = inFlightRequests.get(cacheKey);
@@ -69,7 +79,10 @@ async function request<T>(
     const data = await requestPromise;
 
     if (method === "GET") {
-      responseCache.set(cacheKey, data);
+      responseCache.set(cacheKey, {
+        data,
+        expiresAt: Date.now() + DEFAULT_CACHE_TTL_MS,
+      });
     }
 
     return data;

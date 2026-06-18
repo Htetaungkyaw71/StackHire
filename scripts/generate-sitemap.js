@@ -5,6 +5,8 @@ import { SITE_URL, searchTags, slugifyTag, staticPages } from "./seo-data.js";
 const urls = [];
 
 const today = new Date().toISOString().split("T")[0];
+const distDir = path.join(process.cwd(), "dist");
+const jobPagesPath = path.join(distDir, ".seo-job-pages.json");
 
 // root
 urls.push({
@@ -34,6 +36,14 @@ for (const tag of searchTags) {
   });
 }
 
+if (fs.existsSync(jobPagesPath)) {
+  const jobPages = JSON.parse(fs.readFileSync(jobPagesPath, "utf8"));
+
+  if (Array.isArray(jobPages)) {
+    urls.push(...jobPages);
+  }
+}
+
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
   .map(
     (u) =>
@@ -45,7 +55,6 @@ const outDir = path.join(process.cwd(), "public");
 if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "sitemap.xml"), sitemap);
 
-const distDir = path.join(process.cwd(), "dist");
 if (fs.existsSync(distDir)) {
   fs.writeFileSync(path.join(distDir, "sitemap.xml"), sitemap);
 }
