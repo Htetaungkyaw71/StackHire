@@ -41,8 +41,19 @@ const AppRoutes = () => {
     location.pathname.startsWith("/recruiter/jobs/");
 
   useEffect(() => {
-    if (navigationType === "POP") return;
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (!("scrollRestoration" in window.history)) return;
+
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (navigationType !== "PUSH") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [location.pathname, navigationType]);
 
   return (

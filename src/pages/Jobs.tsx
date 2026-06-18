@@ -143,6 +143,34 @@ type JobsViewSnapshot = {
 };
 
 let jobsViewSnapshot: JobsViewSnapshot | null = null;
+const JOBS_VIEW_SNAPSHOT_KEY = "stackhire.jobsViewSnapshot";
+
+const readJobsViewSnapshot = () => {
+  if (jobsViewSnapshot) return jobsViewSnapshot;
+  if (typeof sessionStorage === "undefined") return null;
+
+  try {
+    const raw = sessionStorage.getItem(JOBS_VIEW_SNAPSHOT_KEY);
+    if (!raw) return null;
+
+    jobsViewSnapshot = JSON.parse(raw) as JobsViewSnapshot;
+    return jobsViewSnapshot;
+  } catch {
+    return null;
+  }
+};
+
+const writeJobsViewSnapshot = (snapshot: JobsViewSnapshot) => {
+  jobsViewSnapshot = snapshot;
+
+  if (typeof sessionStorage === "undefined") return;
+
+  try {
+    sessionStorage.setItem(JOBS_VIEW_SNAPSHOT_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Ignore storage quota/private-mode failures; in-memory restore still works.
+  }
+};
 
 const getJobsFilterKey = ({
   searchParam,
@@ -201,8 +229,9 @@ const Jobs = () => {
     sortBy: initialSort,
     filters: initialFilters,
   });
+  const savedSnapshot = readJobsViewSnapshot();
   const restoredSnapshot =
-    jobsViewSnapshot?.filterKey === initialFilterKey ? jobsViewSnapshot : null;
+    savedSnapshot?.filterKey === initialFilterKey ? savedSnapshot : null;
 
   const [jobs, setJobs] = useState<Job[]>(restoredSnapshot?.jobs ?? []);
   const [loading, setLoading] = useState(!restoredSnapshot);
@@ -221,6 +250,7 @@ const Jobs = () => {
   const filterTransitionRef = useRef(false);
   const restoredSnapshotRef = useRef(Boolean(restoredSnapshot));
   const restoredScrollYRef = useRef(restoredSnapshot?.scrollY ?? null);
+  const openingJobRef = useRef(false);
 
   const searchParam = searchParams.get("search") || routeTerm || "";
   const hasSeoFiltering =
@@ -323,32 +353,31 @@ const Jobs = () => {
     filters,
   });
 
-  useEffect(() => {
-    jobsViewSnapshot = {
+  const saveCurrentSnapshot = (scrollY = window.scrollY) => {
+    writeJobsViewSnapshot({
       filterKey: activeFilterKey,
       jobs,
       page,
       hasNextPage,
       totalJobs,
-      scrollY: window.scrollY,
-    };
+      scrollY,
+    });
+  };
+
+  useEffect(() => {
+    saveCurrentSnapshot();
   }, [activeFilterKey, jobs, page, hasNextPage, totalJobs]);
 
   useEffect(() => {
     let frame = 0;
 
     const saveScrollPosition = () => {
+      if (openingJobRef.current) return;
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        jobsViewSnapshot = {
-          filterKey: activeFilterKey,
-          jobs,
-          page,
-          hasNextPage,
-          totalJobs,
-          scrollY: window.scrollY,
-        };
+        if (openingJobRef.current) return;
+        saveCurrentSnapshot();
       });
     };
 
@@ -357,14 +386,8 @@ const Jobs = () => {
     return () => {
       window.removeEventListener("scroll", saveScrollPosition);
       if (frame) cancelAnimationFrame(frame);
-      jobsViewSnapshot = {
-        filterKey: activeFilterKey,
-        jobs,
-        page,
-        hasNextPage,
-        totalJobs,
-        scrollY: window.scrollY,
-      };
+      if (openingJobRef.current) return;
+      saveCurrentSnapshot();
     };
   }, [activeFilterKey, jobs, page, hasNextPage, totalJobs]);
 
@@ -373,11 +396,28 @@ const Jobs = () => {
     if (scrollY === null || loading) return;
 
     restoredScrollYRef.current = null;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: scrollY, left: 0, behavior: "instant" });
-      });
-    });
+    let attempts = 0;
+    let frame = 0;
+
+    const restoreWhenReady = () => {
+      attempts += 1;
+      const pageCanScrollThere =
+        document.documentElement.scrollHeight >= scrollY + window.innerHeight ||
+        attempts > 30;
+
+      if (pageCanScrollThere) {
+        window.scrollTo({ top: scrollY, left: 0, behavior: "auto" });
+        return;
+      }
+
+      frame = requestAnimationFrame(restoreWhenReady);
+    };
+
+    frame = requestAnimationFrame(restoreWhenReady);
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [loading]);
 
   useEffect(() => {
@@ -394,10 +434,13 @@ const Jobs = () => {
     if (filters.level[0]) next.set("level", filters.level[0]);
     if (filters.salaryMin) next.set("minSalary", filters.salaryMin);
 
+    if (next.toString() === searchParams.toString()) return;
+
     setSearchParams(next, { replace: true });
   }, [
     location.pathname,
     searchParam,
+    searchParams,
     selectedTechs,
     sortBy,
     filters,
@@ -627,7 +670,16 @@ const Jobs = () => {
                   <p className="text-sm mt-1">Try adjusting your filters</p>
                 </div>
               ) : (
-                jobs.map((job) => <JobCard key={job.id} job={job} />)
+                jobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onOpen={() => {
+                      openingJobRef.current = true;
+                      saveCurrentSnapshot();
+                    }}
+                  />
+                ))
               )}
             </div>
 

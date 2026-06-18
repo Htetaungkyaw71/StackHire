@@ -7,7 +7,7 @@ import { useSavedJobs } from "@/hooks/useSavedJobs";
 import { useAuth } from "@/contexts/AuthContext";
 import { slugify } from "@/lib/utils";
 
-const JobCard = ({ job }: { job: Job }) => {
+const JobCard = ({ job, onOpen }: { job: Job; onOpen?: () => void }) => {
   const { isSaved, toggleSaved } = useSavedJobs();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -22,7 +22,11 @@ const JobCard = ({ job }: { job: Job }) => {
         : null;
 
   return (
-    <Link to={`/jobs/${slugify(job.title)}-${job.id}`} className="block group">
+    <Link
+      to={`/jobs/${slugify(job.title)}-${job.id}`}
+      className="block group"
+      onClick={onOpen}
+    >
       <div className="flex items-center mt-3 rounded-md shadow-md max-md:gap-0 gap-4 max-md:p-4 p-5 bg-card border border-border hover:shadow-lg transition-colors">
         {/* Company logo placeholder */}
         {job?.logo ? (
